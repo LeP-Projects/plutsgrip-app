@@ -1,17 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(tree:*)",
-      "Bash(find:*)",
-      "Bash(dir:*)",
-      "Bash(findstr:*)",
-      "Bash(cat:*)",
-      "Bash(test:*)",
-      "Bash(cd:*)",
-      "Bash(docker-compose:*)",
-      "Bash(docker logs:*)",
-      "Bash(curl:*)",
-      "Bash(docker exec:*)"
+      "Bash(__NEW_LINE__ echo \"=== Complete Application Status ===\" echo \"\" echo \"Frontend:\" curl -s http://localhost:5173 -I)"
     ],
     "deny": [],
     "ask": []

@@ -5,9 +5,20 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create custom types
-CREATE TYPE IF NOT EXISTS transactiontype AS ENUM ('INCOME', 'EXPENSE');
-CREATE TYPE IF NOT EXISTS budgetperiod AS ENUM ('MONTHLY', 'QUARTERLY', 'YEARLY');
-CREATE TYPE IF NOT EXISTS recurrencefrequency AS ENUM ('DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY');
+DO $$ BEGIN
+    CREATE TYPE transactiontype AS ENUM ('INCOME', 'EXPENSE');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE budgetperiod AS ENUM ('MONTHLY', 'QUARTERLY', 'YEARLY');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE recurrencefrequency AS ENUM ('DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (

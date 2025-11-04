@@ -21,7 +21,7 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/Dialog"
 import { Label } from "@/components/Label"
 import { Textarea } from "@/components/Textarea"
-import { useState, useEffect, useCallback, memo } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { format } from "date-fns"
 import { useApi } from "@/hooks/useApi"
 import { apiService } from "@/services/api"
@@ -112,7 +112,7 @@ interface RecentTransactionsProps {
   language: string
 }
 
-function RecentTransactions({
+export function RecentTransactions({
   showAll = false,
   onViewAllClick,
   typeFilter = "all",
@@ -432,5 +432,3 @@ function RecentTransactions({
     </Card>
   )
 }
-
-export default memo(RecentTransactions)

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/Chart"
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts"
-import { useMemo, useCallback, memo } from "react"
+import { useMemo, useCallback } from "react"
 import { useApi } from "@/hooks/useApi"
 import { apiService } from "@/services/api"
 
@@ -36,7 +36,7 @@ interface ExpenseChartProps {
   }
 }
 
-function ExpenseChart({ language, filters }: ExpenseChartProps) {
+export function ExpenseChart({ language, filters }: ExpenseChartProps) {
   const t = translations[language as keyof typeof translations]
 
   // Busca dados de transações da API
@@ -100,5 +100,3 @@ function ExpenseChart({ language, filters }: ExpenseChartProps) {
     </Card>
   )
 }
-
-export default memo(ExpenseChart)

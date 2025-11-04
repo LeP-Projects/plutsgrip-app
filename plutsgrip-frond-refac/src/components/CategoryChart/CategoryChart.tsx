@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/Chart"
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts"
-import { useMemo, useCallback, memo } from "react"
+import { useMemo, useCallback } from "react"
 import { useApi } from "@/hooks/useApi"
 import { apiService } from "@/services/api"
 
@@ -45,7 +45,7 @@ interface CategoryChartProps {
   }
 }
 
-function CategoryChart({ language, filters }: CategoryChartProps) {
+export function CategoryChart({ language, filters }: CategoryChartProps) {
   const t = translations[language as keyof typeof translations]
 
   // Busca todas as transações da API
@@ -132,5 +132,3 @@ function CategoryChart({ language, filters }: CategoryChartProps) {
     </Card>
   )
 }
-
-export default memo(CategoryChart)

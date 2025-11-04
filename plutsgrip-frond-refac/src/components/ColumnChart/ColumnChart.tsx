@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/Chart"
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts"
-import { useMemo, useCallback, memo } from "react"
+import { useMemo, useCallback } from "react"
 import { useApi } from "@/hooks/useApi"
 import { apiService } from "@/services/api"
 
@@ -40,7 +40,7 @@ interface ColumnChartProps {
   }
 }
 
-function ColumnChart({ language, filters }: ColumnChartProps) {
+export function ColumnChart({ language, filters }: ColumnChartProps) {
   const t = translations[language as keyof typeof translations]
 
   // Busca todas as transações da API
@@ -114,5 +114,3 @@ function ColumnChart({ language, filters }: ColumnChartProps) {
     </Card>
   )
 }
-
-export default memo(ColumnChart)
