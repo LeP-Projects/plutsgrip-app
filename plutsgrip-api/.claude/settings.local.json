@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"C:\\Users\\Asus\\Desktop\\code\\private\\NA\\plutsgrip-api\\.venv\\Scripts\\pip.exe\" list)",
+      "Bash(move endpoints-api.md docsendpoints-api.md)",
+      "Bash(docker-compose logs:*)",
+      "Bash(findstr:*)",
+      "Bash(curl:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(timeout 10 bash:*)",
+      "Bash(python -m pytest tests/integration/test_transaction_endpoints.py::test_create_transaction -v)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(docker compose exec:*)",
+      "Bash(git push:*)",
+      "Bash(docker compose:*)",
+      "Bash(cd:*)",
+      "Bash(timeout 120 docker compose:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

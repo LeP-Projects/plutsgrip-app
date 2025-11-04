@@ -1,0 +1,1 @@
+export { IncomeChart } from './IncomeChart'

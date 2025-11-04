@@ -1,0 +1,45 @@
+"""
+Report schemas for dashboard and financial summaries
+"""
+from datetime import date
+from decimal import Decimal
+from typing import Optional, Dict
+from pydantic import BaseModel, Field
+
+
+class DashboardResponse(BaseModel):
+    """Schema for dashboard summary response"""
+    total_income: Decimal
+    total_expense: Decimal
+    balance: Decimal
+    transaction_count: int
+    income_count: int
+    expense_count: int
+
+
+class CategorySummary(BaseModel):
+    """Schema for category summary in reports"""
+    category_id: Optional[int]
+    category_name: Optional[str]
+    total: Decimal
+    count: int
+    percentage: float
+
+
+class FinancialSummaryResponse(BaseModel):
+    """Schema for detailed financial summary response"""
+    period_start: date
+    period_end: date
+    total_income: Decimal
+    total_expense: Decimal
+    net_balance: Decimal
+    transaction_count: int
+    income_by_category: list[CategorySummary]
+    expense_by_category: list[CategorySummary]
+    daily_totals: Dict[str, Dict[str, Decimal]]  # {date: {income: x, expense: y}}
+
+
+class ReportFilters(BaseModel):
+    """Schema for report filter parameters"""
+    start_date: Optional[date] = Field(None, description="Start date for report period")
+    end_date: Optional[date] = Field(None, description="End date for report period")

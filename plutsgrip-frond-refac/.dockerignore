@@ -1,0 +1,57 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Node modules
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Build outputs
+dist
+build
+coverage
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment files (don't copy, use docker env vars)
+.env
+.env.local
+.env.*.local
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.circleci
+
+# Documentation
+README.md
+CHANGELOG.md
+docs
+
+# Testing
+cypress
+e2e
+
+# Development
+.eslintcache
+.stylelintcache
+vitest.config.ts
+# NOTE: Do NOT exclude tsconfig.json and vite.config.ts - they're needed in Docker!
+
+# Docker files (don't include in image)
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# OS files
+Thumbs.db
+.DS_Store

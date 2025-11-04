@@ -1,0 +1,68 @@
+"""
+Repositório de Orçamento para operações com banco de dados
+"""
+from typing import List, Optional
+from sqlalchemy import select, and_
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.models.budget import Budget
+from app.repositories.base_repository import BaseRepository
+
+
+class BudgetRepository(BaseRepository[Budget]):
+    """Repositório para operações do modelo Budget"""
+
+    def __init__(self, db: AsyncSession):
+        super().__init__(Budget, db)
+
+    async def get_by_user_id(
+        self,
+        user_id: int,
+        skip: int = 0,
+        limit: int = 100
+    ) -> List[Budget]:
+        """
+        Obtém orçamentos de um usuário específico
+
+        Args:
+            user_id: ID do usuário
+            skip: Número de registros a pular
+            limit: Limite máximo de registros
+
+        Returns:
+            Lista de orçamentos
+        """
+        query = select(Budget).where(Budget.user_id == user_id).offset(skip).limit(limit)
+        result = await self.db.execute(query)
+        return list(result.scalars().all())
+
+    async def get_by_user_and_category(
+        self,
+        user_id: int,
+        category_id: int
+    ) -> Optional[Budget]:
+        """
+        Obtém orçamento de um usuário para uma categoria específica
+
+        Args:
+            user_id: ID do usuário
+            category_id: ID da categoria
+
+        Returns:
+            Orçamento ou None
+        """
+        query = select(Budget).where(
+            and_(
+                Budget.user_id == user_id,
+                Budget.category_id == category_id
+            )
+        )
+        result = await self.db.execute(query)
+        return result.scalars().first()
+
+    async def count_by_user(self, user_id: int) -> int:
+        """Conta orçamentos para um usuário específico"""
+        from sqlalchemy import func
+        result = await self.db.execute(
+            select(func.count(Budget.id)).where(Budget.user_id == user_id)
+        )
+        return result.scalar() or 0

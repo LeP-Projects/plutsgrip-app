@@ -1,0 +1,350 @@
+@startuml PlutusGrip Database Schema
+
+!define TABLE(x) class x << (T,#FFAAAA) >>
+!define PK(x) <b><color:#b8861b><&key></color> x</b>
+!define FK(x) <color:#aaaaaa><&key></color> x
+!define UNIQUE(x) <color:#green><&circle-check></color> x
+!define NOT_NULL(x) <color:#ff6b6b>*</color> x
+
+' Configurações de estilo
+skinparam class {
+    BackgroundColor<<Core>> LightBlue
+    BackgroundColor<<Finance>> LightGreen
+    BackgroundColor<<System>> LightYellow
+    BackgroundColor<<Future>> LightGray
+    BorderColor Black
+    ArrowColor Black
+}
+
+' ====================================
+' CORE ENTITIES (Implementadas)
+' ====================================
+
+TABLE(users) <<Core>> {
+    PK(id): INTEGER
+    --
+    UNIQUE(NOT_NULL(email)): VARCHAR(255)
+    NOT_NULL(name): VARCHAR(100)
+    NOT_NULL(hashed_password): VARCHAR(255)
+    currency: VARCHAR(3) = 'BRL'
+    timezone: VARCHAR(50) = 'UTC'
+    NOT_NULL(created_at): TIMESTAMP
+    NOT_NULL(updated_at): TIMESTAMP
+    deleted_at: TIMESTAMP
+    --
+    indexes:
+    - UNIQUE(email)
+    - INDEX(created_at)
+}
+
+TABLE(categories) <<Finance>> {
+    PK(id): INTEGER
+    --
+    NOT_NULL(name): VARCHAR(100)
+    NOT_NULL(type): ENUM('income', 'expense')
+    color: VARCHAR(7)
+    icon: VARCHAR(50)
+    is_default: BOOLEAN = FALSE
+    FK(user_id): INTEGER
+    NOT_NULL(created_at): TIMESTAMP
+    NOT_NULL(updated_at): TIMESTAMP
+    deleted_at: TIMESTAMP
+    --
+    indexes:
+    - INDEX(user_id)
+    - INDEX(type)
+    - INDEX(is_default)
+    --
+    constraints:
+    - CHECK(color ~ '^#[0-9A-Fa-f]{6}$')
+}
+
+TABLE(transactions) <<Finance>> {
+    PK(id): INTEGER
+    --
+    FK(NOT_NULL(user_id)): INTEGER
+    FK(category_id): INTEGER
+    NOT_NULL(description): VARCHAR(255)
+    NOT_NULL(amount): DECIMAL(10,2)
+    currency: VARCHAR(3)
+    NOT_NULL(date): DATE
+    NOT_NULL(type): ENUM('income', 'expense')
+    notes: TEXT
+    tags: VARCHAR(255)
+    is_recurring: BOOLEAN = FALSE
+    FK(recurring_transaction_id): INTEGER
+    NOT_NULL(created_at): TIMESTAMP
+    NOT_NULL(updated_at): TIMESTAMP
+    deleted_at: TIMESTAMP
+    --
+    indexes:
+    - INDEX(user_id, date DESC)
+    - INDEX(user_id, type)
+    - INDEX(user_id, category_id)
+    - INDEX(date)
+    - INDEX(recurring_transaction_id)
+    --
+    constraints:
+    - CHECK(amount > 0)
+}
+
+' ====================================
+' FINANCIAL FEATURES
+' ====================================
+
+TABLE(budgets) <<Finance>> <<Future>> {
+    PK(id): INTEGER
+    --
+    FK(NOT_NULL(user_id)): INTEGER
+    FK(NOT_NULL(category_id)): INTEGER
+    NOT_NULL(amount): DECIMAL(10,2)
+    NOT_NULL(period): ENUM('weekly', 'monthly', 'yearly')
+    NOT_NULL(start_date): DATE
+    end_date: DATE
+    alert_threshold: DECIMAL(3,2) = 0.80
+    is_active: BOOLEAN = TRUE
+    NOT_NULL(created_at): TIMESTAMP
+    NOT_NULL(updated_at): TIMESTAMP
+    --
+    indexes:
+    - INDEX(user_id)
+    - INDEX(category_id)
+    - INDEX(is_active)
+    - UNIQUE INDEX(user_id, category_id, period)
+    --
+    constraints:
+    - CHECK(amount > 0)
+    - CHECK(alert_threshold BETWEEN 0 AND 1)
+}
+
+TABLE(recurring_transactions) <<Finance>> <<Future>> {
+    PK(id): INTEGER
+    --
+    FK(NOT_NULL(user_id)): INTEGER
+    FK(category_id): INTEGER
+    NOT_NULL(description): VARCHAR(255)
+    NOT_NULL(amount): DECIMAL(10,2)
+    currency: VARCHAR(3)
+    NOT_NULL(type): ENUM('income', 'expense')
+    NOT_NULL(frequency): ENUM('daily', 'weekly', 'monthly', 'yearly')
+    interval_value: INTEGER = 1
+    NOT_NULL(start_date): DATE
+    end_date: DATE
+    NOT_NULL(next_occurrence): DATE
+    is_active: BOOLEAN = TRUE
+    notes: TEXT
+    NOT_NULL(created_at): TIMESTAMP
+    NOT_NULL(updated_at): TIMESTAMP
+    --
+    indexes:
+    - INDEX(user_id)
+    - INDEX(next_occurrence)
+    - INDEX(is_active)
+    --
+    constraints:
+    - CHECK(amount > 0)
+    - CHECK(interval_value > 0)
+}
+
+TABLE(attachments) <<Finance>> <<Future>> {
+    PK(id): INTEGER
+    --
+    FK(NOT_NULL(transaction_id)): INTEGER
+    NOT_NULL(file_name): VARCHAR(255)
+    NOT_NULL(file_url): VARCHAR(500)
+    file_size: INTEGER
+    mime_type: VARCHAR(100)
+    storage_provider: VARCHAR(50) = 'local'
+    NOT_NULL(created_at): TIMESTAMP
+    --
+    indexes:
+    - INDEX(transaction_id)
+    --
+    constraints:
+    - CHECK(file_size <= 5242880)
+}
+
+' ====================================
+' REPORTING & ANALYTICS
+' ====================================
+
+TABLE(savings_goals) <<Finance>> <<Future>> {
+    PK(id): INTEGER
+    --
+    FK(NOT_NULL(user_id)): INTEGER
+    NOT_NULL(name): VARCHAR(100)
+    description: TEXT
+    NOT_NULL(target_amount): DECIMAL(10,2)
+    current_amount: DECIMAL(10,2) = 0
+    NOT_NULL(target_date): DATE
+    priority: INTEGER = 1
+    is_completed: BOOLEAN = FALSE
+    NOT_NULL(created_at): TIMESTAMP
+    NOT_NULL(updated_at): TIMESTAMP
+    --
+    indexes:
+    - INDEX(user_id)
+    - INDEX(is_completed)
+    --
+    constraints:
+    - CHECK(target_amount > 0)
+    - CHECK(current_amount >= 0)
+    - CHECK(priority BETWEEN 1 AND 5)
+}
+
+TABLE(account_balances) <<Finance>> <<Future>> {
+    PK(id): INTEGER
+    --
+    FK(NOT_NULL(user_id)): INTEGER
+    balance_date: DATE
+    total_income: DECIMAL(10,2) = 0
+    total_expense: DECIMAL(10,2) = 0
+    net_balance: DECIMAL(10,2)
+    transaction_count: INTEGER = 0
+    NOT_NULL(calculated_at): TIMESTAMP
+    --
+    indexes:
+    - UNIQUE INDEX(user_id, balance_date)
+    - INDEX(balance_date DESC)
+}
+
+' ====================================
+' SYSTEM & SECURITY
+' ====================================
+
+TABLE(refresh_tokens) <<System>> <<Future>> {
+    PK(id): INTEGER
+    --
+    FK(NOT_NULL(user_id)): INTEGER
+    NOT_NULL(token): VARCHAR(500)
+    NOT_NULL(expires_at): TIMESTAMP
+    is_revoked: BOOLEAN = FALSE
+    revoked_at: TIMESTAMP
+    NOT_NULL(created_at): TIMESTAMP
+    ip_address: VARCHAR(45)
+    user_agent: VARCHAR(255)
+    --
+    indexes:
+    - UNIQUE(token)
+    - INDEX(user_id)
+    - INDEX(expires_at)
+}
+
+TABLE(audit_logs) <<System>> <<Future>> {
+    PK(id): INTEGER
+    --
+    FK(user_id): INTEGER
+    NOT_NULL(action): VARCHAR(50)
+    NOT_NULL(resource_type): VARCHAR(50)
+    resource_id: INTEGER
+    old_values: JSONB
+    new_values: JSONB
+    ip_address: VARCHAR(45)
+    user_agent: VARCHAR(255)
+    NOT_NULL(created_at): TIMESTAMP
+    --
+    indexes:
+    - INDEX(user_id)
+    - INDEX(resource_type, resource_id)
+    - INDEX(created_at DESC)
+    - INDEX(action)
+}
+
+TABLE(notifications) <<System>> <<Future>> {
+    PK(id): INTEGER
+    --
+    FK(NOT_NULL(user_id)): INTEGER
+    NOT_NULL(type): ENUM('budget_alert', 'goal_achieved', 'monthly_summary')
+    NOT_NULL(title): VARCHAR(255)
+    message: TEXT
+    is_read: BOOLEAN = FALSE
+    NOT_NULL(created_at): TIMESTAMP
+    read_at: TIMESTAMP
+    --
+    indexes:
+    - INDEX(user_id, is_read)
+    - INDEX(created_at DESC)
+}
+
+TABLE(user_preferences) <<System>> <<Future>> {
+    PK(id): INTEGER
+    --
+    FK(NOT_NULL(user_id)): INTEGER
+    default_currency: VARCHAR(3) = 'BRL'
+    date_format: VARCHAR(20) = 'YYYY-MM-DD'
+    number_format: VARCHAR(20) = 'en-US'
+    theme: VARCHAR(20) = 'light'
+    notifications_enabled: BOOLEAN = TRUE
+    email_notifications: BOOLEAN = TRUE
+    budget_alerts: BOOLEAN = TRUE
+    monthly_summary: BOOLEAN = TRUE
+    NOT_NULL(created_at): TIMESTAMP
+    NOT_NULL(updated_at): TIMESTAMP
+    --
+    indexes:
+    - UNIQUE(user_id)
+}
+
+' ====================================
+' RELATIONSHIPS
+' ====================================
+
+' User relationships
+users "1" -- "0..*" transactions : owns
+users "1" -- "0..*" categories : creates
+users "1" -- "0..*" budgets : defines
+users "1" -- "0..*" recurring_transactions : schedules
+users "1" -- "0..*" savings_goals : sets
+users "1" -- "0..*" account_balances : has
+users "1" -- "0..*" refresh_tokens : authenticates
+users "1" -- "0..*" audit_logs : generates
+users "1" -- "0..*" notifications : receives
+users "1" -- "0..1" user_preferences : configures
+
+' Transaction relationships
+transactions "0..*" -- "0..1" categories : categorized_by
+transactions "1" -- "0..*" attachments : has
+transactions "0..*" -- "0..1" recurring_transactions : generated_from
+
+' Budget relationships
+budgets "0..*" -- "1" categories : limits
+
+' Category relationships (self-referential for subcategories - future)
+' categories "0..*" -- "0..1" categories : parent
+
+note top of users
+  <b>Core Entity</b>
+  Stores user authentication
+  and profile information.
+  Soft delete enabled.
+end note
+
+note top of transactions
+  <b>Main Financial Entity</b>
+  All financial movements.
+  Supports multi-currency.
+  Linked to recurring if auto-generated.
+end note
+
+note top of budgets
+  <b>Budget Control</b>
+  Defines spending limits
+  per category and period.
+  Alerts at threshold %.
+end note
+
+note top of recurring_transactions
+  <b>Automation</b>
+  Template for recurring
+  transactions (salary, rent, etc).
+  Generates transactions automatically.
+end note
+
+note top of audit_logs
+  <b>Security & Compliance</b>
+  Immutable log of all
+  critical actions.
+  JSONB for flexibility.
+end note
+
+@enduml

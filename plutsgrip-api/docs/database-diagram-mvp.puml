@@ -1,0 +1,124 @@
+@startuml PlutusGrip Database Schema - MVP (Implementado)
+
+!define TABLE(x) class x << (T,#FFAAAA) >>
+!define PK(x) <b><color:#b8861b><&key></color> x</b>
+!define FK(x) <color:#aaaaaa><&key></color> x
+!define UNIQUE(x) <color:#green><&circle-check></color> x
+!define NOT_NULL(x) <color:#ff6b6b>*</color> x
+
+skinparam class {
+    BackgroundColor LightBlue
+    BorderColor Black
+    ArrowColor Black
+}
+
+title PlutusGrip Finance Tracker - MVP Database Schema
+
+' ====================================
+' CORE TABLES (CURRENTLY IMPLEMENTED)
+' ====================================
+
+TABLE(users) {
+    PK(id): INTEGER
+    ==
+    UNIQUE(NOT_NULL(email)): VARCHAR(255)
+    NOT_NULL(name): VARCHAR(100)
+    NOT_NULL(hashed_password): VARCHAR(255)
+    NOT_NULL(created_at): TIMESTAMP
+    NOT_NULL(updated_at): TIMESTAMP
+    ==
+    <b>Indexes:</b>
+    • UNIQUE(email)
+    • INDEX(created_at)
+}
+
+TABLE(categories) {
+    PK(id): INTEGER
+    ==
+    NOT_NULL(name): VARCHAR(100)
+    NOT_NULL(type): ENUM('income', 'expense')
+    color: VARCHAR(7)
+    icon: VARCHAR(50)
+    NOT_NULL(created_at): TIMESTAMP
+    NOT_NULL(updated_at): TIMESTAMP
+    ==
+    <b>Indexes:</b>
+    • INDEX(type)
+    ==
+    <b>Constraints:</b>
+    • CHECK(color ~ '^#[0-9A-Fa-f]{6}$')
+}
+
+TABLE(transactions) {
+    PK(id): INTEGER
+    ==
+    FK(NOT_NULL(user_id)): INTEGER
+    FK(category_id): INTEGER
+    NOT_NULL(description): VARCHAR(255)
+    NOT_NULL(amount): DECIMAL(10,2)
+    NOT_NULL(date): DATE
+    NOT_NULL(type): ENUM('income', 'expense')
+    notes: TEXT
+    NOT_NULL(created_at): TIMESTAMP
+    NOT_NULL(updated_at): TIMESTAMP
+    ==
+    <b>Indexes:</b>
+    • INDEX(user_id, date DESC)
+    • INDEX(user_id, type)
+    • INDEX(user_id, category_id)
+    • INDEX(category_id)
+    • INDEX(date)
+    ==
+    <b>Constraints:</b>
+    • CHECK(amount > 0)
+    • FK user_id → users(id) ON DELETE CASCADE
+    • FK category_id → categories(id) ON DELETE SET NULL
+}
+
+' ====================================
+' RELATIONSHIPS
+' ====================================
+
+users "1" *-- "many" transactions : owns >
+categories "1" o-- "many" transactions : categorizes >
+
+note right of users
+    <b>Authentication & Profile</b>
+    ──────────────────────
+    • Stores user credentials
+    • bcrypt hashed passwords
+    • JWT authentication
+    • Cascade delete transactions
+end note
+
+note right of categories
+    <b>Transaction Classification</b>
+    ──────────────────────
+    • Predefined categories
+    • Two types: income/expense
+    • Color coding for UI
+    • Icon for visual identification
+    • Can be NULL in transactions
+end note
+
+note bottom of transactions
+    <b>Main Financial Entity</b>
+    ──────────────────────────────────
+    • Stores all financial movements
+    • Linked to user (required)
+    • Linked to category (optional)
+    • Type matches category type
+    • Amount must be positive
+    • Indexed for fast queries
+    • User can only access own transactions
+end note
+
+legend right
+    |<#FFAAAA> Table |
+    |<#b8861b> PK | Primary Key |
+    |<#aaaaaa> FK | Foreign Key |
+    |<#green> ✓ | Unique Constraint |
+    |<#ff6b6b> * | NOT NULL |
+endlegend
+
+@enduml
