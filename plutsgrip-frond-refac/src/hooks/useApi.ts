@@ -5,7 +5,7 @@
  * com tratamento de loading, erro e dados
  */
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { apiService } from "@/services/api"
 
 interface UseApiState<T> {
@@ -44,7 +44,16 @@ export function useApi<T>(
     error: null,
   })
 
+  // Usar useRef para armazenar o callback sem causar re-renders
+  // Isso evita loops infinitos quando o callback muda
+  const callbackRef = useRef(callback)
+
+  useEffect(() => {
+    callbackRef.current = callback
+  }, [callback])
+
   const execute = useCallback(async () => {
+    console.log("[useApi] Executando requisição")
     setState((prev) => ({
       ...prev,
       loading: true,
@@ -52,21 +61,24 @@ export function useApi<T>(
     }))
 
     try {
-      const result = await callback()
+      const result = await callbackRef.current()
       setState({
         data: result ?? null,
         loading: false,
         error: null,
       })
+      console.log("[useApi] Requisição concluída com sucesso")
     } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err))
+      console.error("[useApi] Erro na requisição:", error.message)
       setState({
         data: null,
         loading: false,
-        error: err instanceof Error ? err : new Error(String(err)),
+        error: error,
       })
-      throw err
+      throw error
     }
-  }, [callback])
+  }, []) // ← Agora vazio! Execute não depende de callback
 
   const refetch = useCallback(() => execute(), [execute])
 
@@ -86,13 +98,16 @@ export function useApi<T>(
   }, [])
 
   // Executa a requisição imediatamente se solicitado
+  // execute NÃO deve estar nas dependências! Ele é criado com useCallback([])
+  // então é estável. Se colocar nas deps, causa loop infinito.
   useEffect(() => {
     if (immediate) {
       execute().catch(() => {
         // Erro já foi tratado no estado
       })
     }
-  }, [immediate, execute])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [immediate])
 
   return {
     ...state,

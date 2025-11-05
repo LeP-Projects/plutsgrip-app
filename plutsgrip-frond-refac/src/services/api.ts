@@ -214,18 +214,20 @@ class ApiService {
   private static instance: ApiService
   private _accessToken: string | null = null
   private _refreshToken: string | null = null
-  private _initialized = false
 
   private constructor() {}
 
   /**
-   * Getter lazy para accessToken
+   * Getter para accessToken - sempre lê do localStorage para evitar race conditions
    */
   private get accessToken(): string | null {
-    if (!this._initialized) {
-      this._accessToken = localStorage.getItem("access_token")
-      this._refreshToken = localStorage.getItem("refresh_token")
-      this._initialized = true
+    // Sempre lê do localStorage para garantir valor fresco
+    // Isso evita a race condition onde o token é lido como null antes do login
+    // e fica em cache mesmo após o login armazenar um novo token
+    const token = localStorage.getItem("access_token")
+    if (token !== this._accessToken) {
+      this._accessToken = token
+      console.log("[API] Access token atualizado do localStorage")
     }
     return this._accessToken
   }
@@ -238,13 +240,14 @@ class ApiService {
   }
 
   /**
-   * Getter lazy para refreshToken
+   * Getter para refreshToken - sempre lê do localStorage
    */
   private get refreshToken(): string | null {
-    if (!this._initialized) {
-      this._accessToken = localStorage.getItem("access_token")
-      this._refreshToken = localStorage.getItem("refresh_token")
-      this._initialized = true
+    // Sempre lê do localStorage para garantir valor fresco
+    const token = localStorage.getItem("refresh_token")
+    if (token !== this._refreshToken) {
+      this._refreshToken = token
+      console.log("[API] Refresh token atualizado do localStorage")
     }
     return this._refreshToken
   }
@@ -327,13 +330,15 @@ class ApiService {
   }
 
   /**
-   * Limpa tokens do localStorage
+   * Limpa tokens do localStorage e dados do usuário
    */
   private clearTokens() {
     this.accessToken = null
     this.refreshToken = null
     localStorage.removeItem("access_token")
     localStorage.removeItem("refresh_token")
+    localStorage.removeItem("user")
+    console.log("[API] Tokens e dados do usuário removidos do localStorage")
   }
 
   /**

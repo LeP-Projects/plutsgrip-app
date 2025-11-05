@@ -130,7 +130,13 @@ export function Dashboard() {
   )
 
   // Usa dados da API ou valores padrão
-  const filteredData = dashboardData || {
+  // Mapeia os dados da API (snake_case) para o formato esperado
+  const filteredData = dashboardData ? {
+    totalBalance: dashboardData.balance || 0,
+    monthlyExpenses: dashboardData.total_expense || 0,
+    monthlyIncome: dashboardData.total_income || 0,
+    budgetRemaining: dashboardData.balance || 0, // Usa balance como orçamento restante
+  } : {
     totalBalance: 0,
     monthlyExpenses: 0,
     monthlyIncome: 0,
@@ -262,93 +268,115 @@ export function Dashboard() {
         )}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsContent value="overview" className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-serif font-bold text-foreground">{t.financialOverview}</h2>
-                <p className="text-sm sm:text-base text-muted-foreground">{t.trackExpenses}</p>
+            {dashboardError && (
+              <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4 text-sm text-red-700 dark:text-red-200">
+                <p className="font-semibold">Erro ao carregar dados:</p>
+                <p>{dashboardError instanceof Error ? dashboardError.message : "Falha ao conectar à API"}</p>
               </div>
-              <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                {t.addTransaction}
-              </Button>
-            </div>
+            )}
 
-            <DashboardFilters onFiltersChange={handleDashboardFiltersChange} language={language} />
+            {dashboardLoading && (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <span className="ml-3 text-muted-foreground">Carregando dados...</span>
+              </div>
+            )}
 
-            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.totalBalance}</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-primary">
-                    {formatCurrency(convertAmount(filteredData.totalBalance, "USD", currency))}
+            {!dashboardLoading && (
+              <>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl sm:text-3xl font-serif font-bold text-foreground">{t.financialOverview}</h2>
+                    <p className="text-sm sm:text-base text-muted-foreground">{t.trackExpenses}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    <span className="text-green-600">+2.5%</span> {t.fromLastMonth}
-                  </p>
-                </CardContent>
-              </Card>
+                  <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    {t.addTransaction}
+                  </Button>
+                </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.monthlyExpenses}</CardTitle>
-                  <TrendingDown className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-destructive">
-                    {formatCurrency(convertAmount(filteredData.monthlyExpenses, "USD", currency))}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    <span className="text-red-600">+12.3%</span> {t.fromLastMonth}
-                  </p>
-                </CardContent>
-              </Card>
+                <DashboardFilters onFiltersChange={handleDashboardFiltersChange} language={language} />
+              </>
+            )}
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.monthlyIncome}</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">
-                    {formatCurrency(convertAmount(filteredData.monthlyIncome, "USD", currency))}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    <span className="text-green-600">+8.2%</span> {t.fromLastMonth}
-                  </p>
-                </CardContent>
-              </Card>
+            {!dashboardLoading && (
+              <>
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">{t.totalBalance}</CardTitle>
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-primary">
+                        {formatCurrency(convertAmount(filteredData.totalBalance, "USD", currency))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        <span className="text-green-600">+2.5%</span> {t.fromLastMonth}
+                      </p>
+                    </CardContent>
+                  </Card>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.budgetRemaining}</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-secondary">
-                    {formatCurrency(convertAmount(filteredData.budgetRemaining, "USD", currency))}
-                  </div>
-                  <p className="text-xs text-muted-foreground">62% {t.ofMonthlyBudget}</p>
-                </CardContent>
-              </Card>
-            </div>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">{t.monthlyExpenses}</CardTitle>
+                      <TrendingDown className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-destructive">
+                        {formatCurrency(convertAmount(filteredData.monthlyExpenses, "USD", currency))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        <span className="text-red-600">+12.3%</span> {t.fromLastMonth}
+                      </p>
+                    </CardContent>
+                  </Card>
 
-            <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
-              <ExpenseChart language={language} filters={dashboardFilters} />
-              <IncomeChart language={language} filters={dashboardFilters} />
-            </div>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">{t.monthlyIncome}</CardTitle>
+                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-green-600">
+                        {formatCurrency(convertAmount(filteredData.monthlyIncome, "USD", currency))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        <span className="text-green-600">+8.2%</span> {t.fromLastMonth}
+                      </p>
+                    </CardContent>
+                  </Card>
 
-            <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
-              <CategoryChart language={language} filters={dashboardFilters} />
-              <ColumnChart language={language} filters={dashboardFilters} />
-            </div>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">{t.budgetRemaining}</CardTitle>
+                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-secondary">
+                        {formatCurrency(convertAmount(filteredData.budgetRemaining, "USD", currency))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">62% {t.ofMonthlyBudget}</p>
+                    </CardContent>
+                  </Card>
+                </div>
 
-            <RecentTransactions
-              onViewAllClick={handleViewAllTransactions}
-              language={language}
-            />
+                <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
+                  <ExpenseChart language={language} filters={dashboardFilters} />
+                  <IncomeChart language={language} filters={dashboardFilters} />
+                </div>
+
+                <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
+                  <CategoryChart language={language} filters={dashboardFilters} />
+                  <ColumnChart language={language} filters={dashboardFilters} />
+                </div>
+
+                <RecentTransactions
+                  onViewAllClick={handleViewAllTransactions}
+                  language={language}
+                />
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="transactions" className="space-y-6">

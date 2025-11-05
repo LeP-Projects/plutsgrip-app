@@ -43,18 +43,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Verifica se há token salvo ao carregar
   useEffect(() => {
+    console.log("[AUTH] Inicializando autenticação")
     const token = localStorage.getItem("access_token")
     const savedUser = localStorage.getItem("user")
 
-    if (token && savedUser) {
+    console.log("[AUTH] Verificando localStorage:", {
+      hasToken: !!token,
+      hasUser: !!savedUser,
+      timestamp: new Date().toISOString()
+    })
+
+    // Validar consistência: se tem user, DEVE ter token
+    if (savedUser && !token) {
+      console.warn("[AUTH] Estado inconsistente detectado: user existe mas token não, limpando dados")
+      localStorage.removeItem("access_token")
+      localStorage.removeItem("refresh_token")
+      localStorage.removeItem("user")
+      setUser(null)
+    } else if (token && savedUser) {
       try {
-        setUser(JSON.parse(savedUser))
+        const parsedUser = JSON.parse(savedUser)
+        setUser(parsedUser)
+        console.log("[AUTH] Usuário restaurado da sessão:", parsedUser)
       } catch (error) {
-        console.error("Erro ao carregar usuário:", error)
+        console.error("[AUTH] Erro ao carregar usuário:", error)
         localStorage.removeItem("access_token")
         localStorage.removeItem("refresh_token")
         localStorage.removeItem("user")
+        setUser(null)
       }
+    } else {
+      console.log("[AUTH] Nenhuma sessão anterior encontrada")
     }
     setIsLoading(false)
   }, [])
@@ -77,18 +96,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   const login = async (email: string, password: string) => {
     try {
+      console.log("[AUTH] Iniciando login para:", email)
       setIsLoading(true)
+
       const response = await apiService.login({ email, password })
 
+      console.log("[AUTH] Resposta recebida da API:", {
+        hasAccessToken: !!response.access_token,
+        hasRefreshToken: !!response.refresh_token,
+        user: response.user
+      })
+
       // Armazena token e usuário
-      localStorage.setItem("jwt_token", response.access_token)
+      localStorage.setItem("access_token", response.access_token)
+      localStorage.setItem("refresh_token", response.refresh_token)
       localStorage.setItem("user", JSON.stringify(response.user))
+      console.log("[AUTH] Tokens e usuário armazenados em localStorage")
+
       setUser(response.user)
+      console.log("[AUTH] Estado do usuário atualizado:", response.user)
     } catch (error) {
-      console.error("Erro no login:", error)
+      console.error("[AUTH] Erro no login:", {
+        email,
+        error: error instanceof Error ? error.message : error,
+        timestamp: new Date().toISOString()
+      })
       throw error
     } finally {
       setIsLoading(false)
+      console.log("[AUTH] Estado de carregamento definido como false")
     }
   }
 
@@ -97,18 +133,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   const register = async (name: string, email: string, password: string) => {
     try {
+      console.log("[AUTH] Iniciando registro para:", { name, email })
       setIsLoading(true)
+
       const response = await apiService.register({ name, email, password })
 
+      console.log("[AUTH] Resposta de registro recebida da API:", {
+        hasAccessToken: !!response.access_token,
+        hasRefreshToken: !!response.refresh_token,
+        user: response.user
+      })
+
       // Armazena token e usuário
-      localStorage.setItem("jwt_token", response.access_token)
+      localStorage.setItem("access_token", response.access_token)
+      localStorage.setItem("refresh_token", response.refresh_token)
       localStorage.setItem("user", JSON.stringify(response.user))
+      console.log("[AUTH] Tokens e usuário armazenados em localStorage")
+
       setUser(response.user)
+      console.log("[AUTH] Estado do usuário atualizado:", response.user)
     } catch (error) {
-      console.error("Erro no registro:", error)
+      console.error("[AUTH] Erro no registro:", {
+        email,
+        error: error instanceof Error ? error.message : error,
+        timestamp: new Date().toISOString()
+      })
       throw error
     } finally {
       setIsLoading(false)
+      console.log("[AUTH] Estado de carregamento definido como false")
     }
   }
 
@@ -116,10 +169,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
    * Realiza logout do usuário
    */
   const logout = () => {
+    console.log("[AUTH] Realizando logout")
     localStorage.removeItem("access_token")
     localStorage.removeItem("refresh_token")
     localStorage.removeItem("user")
     setUser(null)
+    console.log("[AUTH] Logout concluído - localStorage limpo e estado resetado")
   }
 
   return (

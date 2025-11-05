@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts"
 import { useMemo, useCallback } from "react"
 import { useApi } from "@/hooks/useApi"
 import { apiService } from "@/services/api"
+import { AlertCircle } from "lucide-react"
 
 // Mock data removed - now fetching from API
 
@@ -49,7 +50,7 @@ export function ColumnChart({ language, filters }: ColumnChartProps) {
     []
   )
 
-  const { data: transactionsData } = useApi(
+  const { data: transactionsData, loading: transactionsLoading, error: transactionsError } = useApi(
     fetchTransactions,
     true // fetch immediately
   )
@@ -91,6 +92,37 @@ export function ColumnChart({ language, filters }: ColumnChartProps) {
   }, [filters, transactionsData])
 
   console.log("[ColumnChart] filtered data:", filteredData)
+
+  if (transactionsError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-serif">{t.incomeVsExpenses}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2 text-destructive py-8">
+            <AlertCircle className="h-5 w-5" />
+            <p className="text-sm">Erro ao carregar comparação</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (transactionsLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-serif">{t.incomeVsExpenses}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card>

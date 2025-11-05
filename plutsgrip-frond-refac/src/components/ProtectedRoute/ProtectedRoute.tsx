@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext"
  */
 export function ProtectedRoute() {
   const { isAuthenticated, isLoading } = useAuth()
+  const token = localStorage.getItem("access_token")
 
   if (isLoading) {
     return (
@@ -24,7 +25,12 @@ export function ProtectedRoute() {
     )
   }
 
-  if (!isAuthenticated) {
+  // Verifica tanto autenticação quanto existência de token válido
+  if (!isAuthenticated || !token) {
+    console.log("[PROTECTED_ROUTE] Acesso negado:", {
+      isAuthenticated,
+      hasToken: !!token
+    })
     return <Navigate to="/login" replace />
   }
 
