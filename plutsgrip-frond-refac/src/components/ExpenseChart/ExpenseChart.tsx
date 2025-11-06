@@ -52,7 +52,7 @@ export function ExpenseChart({ language, filters }: ExpenseChartProps) {
   )
 
   const filteredData = useMemo(() => {
-    const transactions = transactionsData?.data || []
+    const transactions = transactionsData?.transactions || []
     let filtered = transactions.filter((transaction) => transaction.type === "expense")
 
     // Apply category filter

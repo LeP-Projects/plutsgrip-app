@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card"
 import { Button } from "@/components/Button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs"
 import { useApi } from "@/hooks/useApi"
 import { apiService } from "@/services/api"
+import { useAuth } from "@/contexts/AuthContext"
 import {
   PlusCircle,
   TrendingUp,
@@ -16,6 +18,8 @@ import {
   FileText,
   Menu,
   X,
+  Coins,
+  LogOut,
 } from "lucide-react"
 import { ExpenseChart } from "@/components/ExpenseChart"
 import { IncomeChart } from "@/components/IncomeChart"
@@ -112,6 +116,8 @@ const translations = {
 }
 
 export function Dashboard() {
+  const navigate = useNavigate()
+  const { logout } = useAuth()
   const [activeTab, setActiveTab] = useState("overview")
   const [language, setLanguage] = useState("en")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -172,6 +178,11 @@ export function Dashboard() {
     }
   }
 
+  const handleLogout = () => {
+    logout()
+    navigate("/login", { replace: true })
+  }
+
   return (
     <div className="flex min-h-screen bg-background">
       {/* Backdrop for mobile menu */}
@@ -191,9 +202,12 @@ export function Dashboard() {
         `}
       >
         <div className="p-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-serif font-bold text-sidebar-foreground">{t.financeTracker}</h1>
-            <p className="text-sm text-sidebar-foreground/70 mt-1">{t.personalExpenseManagement}</p>
+          <div className="flex items-center gap-3">
+            <Coins className="h-8 w-8 text-primary" />
+            <div>
+              <h1 className="text-2xl font-serif font-bold text-sidebar-foreground">PlutusGrip</h1>
+              <p className="text-sm text-sidebar-foreground/70 mt-1">{t.personalExpenseManagement}</p>
+            </div>
           </div>
           {isMobile && (
             <Button
@@ -249,6 +263,18 @@ export function Dashboard() {
             {t.settings}
           </Button>
         </nav>
+
+        {/* Logout Section */}
+        <div className="px-4 py-4 border-t border-sidebar-border">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={handleLogout}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            {language === "pt" ? "Sair" : "Logout"}
+          </Button>
+        </div>
       </aside>
 
       <main className="flex-1 p-4 md:p-6">

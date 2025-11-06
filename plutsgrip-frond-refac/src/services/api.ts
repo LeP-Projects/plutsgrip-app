@@ -41,7 +41,7 @@ export interface Transaction {
   description: string
   amount: number
   type: "income" | "expense"
-  category_id: string
+  category_id: number
   date: string
   notes?: string
   user_id: string
@@ -53,7 +53,7 @@ export interface TransactionCreateRequest {
   description: string
   amount: number
   type: "income" | "expense"
-  category_id: string
+  category_id: number
   date: string
   notes?: string
 }
@@ -74,10 +74,15 @@ export interface Category {
   is_default: boolean
 }
 
+export interface CategoryListResponse {
+  categories: Category[]
+  total: number
+}
+
 export interface Budget {
   id: string
   user_id: string
-  category_id: string
+  category_id: number
   amount: number
   period: "monthly" | "quarterly" | "yearly"
   start_date: string
@@ -87,7 +92,7 @@ export interface Budget {
 }
 
 export interface BudgetCreateRequest {
-  category_id: string
+  category_id: number
   amount: number
   period: "monthly" | "quarterly" | "yearly"
   start_date: string
@@ -486,8 +491,8 @@ class ApiService {
   /**
    * Lista todas as categorias
    */
-  async listCategories(): Promise<Category[]> {
-    return this.request<Category[]>("/categories")
+  async listCategories(): Promise<CategoryListResponse> {
+    return this.request<CategoryListResponse>("/categories")
   }
 
   /**
@@ -496,6 +501,48 @@ class ApiService {
   async getCategoriesByType(type: "income" | "expense"): Promise<Category[]> {
     const params = new URLSearchParams({ type })
     return this.request<Category[]>(`/categories?${params.toString()}`)
+  }
+
+  /**
+   * Cria uma nova categoria
+   */
+  async createCategory(data: {
+    name: string
+    type: "income" | "expense"
+    color?: string
+    icon?: string
+  }): Promise<Category> {
+    return this.request<Category>("/categories", {
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+  }
+
+  /**
+   * Atualiza uma categoria existente
+   */
+  async updateCategory(
+    id: string,
+    data: Partial<{
+      name: string
+      type: "income" | "expense"
+      color: string
+      icon: string
+    }>
+  ): Promise<Category> {
+    return this.request<Category>(`/categories/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    })
+  }
+
+  /**
+   * Deleta uma categoria
+   */
+  async deleteCategory(id: string): Promise<void> {
+    return this.request<void>(`/categories/${id}`, {
+      method: "DELETE",
+    })
   }
 
   // ===================== RELATÓRIOS =====================

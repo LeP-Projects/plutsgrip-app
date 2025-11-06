@@ -52,7 +52,7 @@ export function IncomeChart({ language, filters }: IncomeChartProps) {
   )
 
   const filteredData = useMemo(() => {
-    const transactions = transactionsData?.data || []
+    const transactions = transactionsData?.transactions || []
     let filtered = transactions.filter((transaction) => transaction.type === "income")
 
     // Apply category filter

@@ -58,3 +58,63 @@ class CategoryService:
             select(Category).where(Category.is_default == True).order_by(Category.type)
         )
         return list(result.scalars().all())
+
+    async def create_category(
+        self,
+        name: str,
+        transaction_type: TransactionType,
+        user_id: int,
+        color: Optional[str] = None,
+        icon: Optional[str] = None
+    ) -> Category:
+        """
+        Create a new category
+
+        Args:
+            name: Category name
+            transaction_type: Type of transaction (income/expense)
+            user_id: User ID who owns this category
+            color: Optional hex color code
+            icon: Optional icon name
+
+        Returns:
+            Created category object
+        """
+        category_data = {
+            "name": name,
+            "type": transaction_type,
+            "user_id": user_id,
+            "color": color,
+            "icon": icon,
+            "is_default": False
+        }
+        return await self.category_repo.create(category_data)
+
+    async def update_category(
+        self,
+        category_id: int,
+        **kwargs
+    ) -> Optional[Category]:
+        """
+        Update a category
+
+        Args:
+            category_id: Category ID to update
+            **kwargs: Fields to update (name, transaction_type, color, icon)
+
+        Returns:
+            Updated category object or None if not found
+        """
+        return await self.category_repo.update(category_id, **kwargs)
+
+    async def delete_category(self, category_id: int) -> bool:
+        """
+        Soft delete a category
+
+        Args:
+            category_id: Category ID to delete
+
+        Returns:
+            True if deleted successfully
+        """
+        return await self.category_repo.soft_delete(category_id)

@@ -51,13 +51,13 @@ class BaseRepository(Generic[ModelType]):
         await self.db.execute(
             update(self.model).where(self.model.id == id).values(**obj_in)
         )
-        await self.db.commit()
+        await self.db.flush()
         return await self.get_by_id(id)
 
     async def delete(self, id: int) -> bool:
         """Delete a record by ID"""
         result = await self.db.execute(delete(self.model).where(self.model.id == id))
-        await self.db.commit()
+        await self.db.flush()
         return result.rowcount > 0
 
     async def count(self) -> int:
@@ -65,3 +65,12 @@ class BaseRepository(Generic[ModelType]):
         from sqlalchemy import func
         result = await self.db.execute(select(func.count(self.model.id)))
         return result.scalar() or 0
+
+    async def soft_delete(self, id: int) -> bool:
+        """Soft delete a record by ID (sets deleted_at timestamp)"""
+        from datetime import datetime
+        result = await self.db.execute(
+            update(self.model).where(self.model.id == id).values(deleted_at=datetime.utcnow())
+        )
+        await self.db.flush()
+        return result.rowcount > 0

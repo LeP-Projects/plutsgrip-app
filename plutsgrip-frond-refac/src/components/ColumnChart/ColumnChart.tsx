@@ -56,7 +56,7 @@ export function ColumnChart({ language, filters }: ColumnChartProps) {
   )
 
   const filteredData = useMemo(() => {
-    const transactions = transactionsData?.data || []
+    const transactions = transactionsData?.transactions || []
     let filtered = transactions
 
     // Apply category filter

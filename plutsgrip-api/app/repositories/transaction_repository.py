@@ -4,6 +4,7 @@ Transaction repository for database operations
 from typing import List, Optional
 from datetime import date
 from sqlalchemy import select, and_
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.transaction import Transaction
 from app.models.category import TransactionType
@@ -37,7 +38,7 @@ class TransactionRepository(BaseRepository[Transaction]):
         Returns:
             List of transactions
         """
-        query = select(Transaction).where(Transaction.user_id == user_id)
+        query = select(Transaction).options(selectinload(Transaction.category)).where(Transaction.user_id == user_id)
 
         if transaction_type:
             query = query.where(Transaction.type == transaction_type)
@@ -67,7 +68,7 @@ class TransactionRepository(BaseRepository[Transaction]):
         Returns:
             List of transactions
         """
-        query = select(Transaction).where(
+        query = select(Transaction).options(selectinload(Transaction.category)).where(
             and_(
                 Transaction.user_id == user_id,
                 Transaction.date >= start_date,

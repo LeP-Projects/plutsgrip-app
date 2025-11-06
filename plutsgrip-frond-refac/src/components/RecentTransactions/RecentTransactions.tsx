@@ -139,8 +139,8 @@ export function RecentTransactions({
 
   // Atualiza transactions quando dados da API chegam
   useEffect(() => {
-    if (transactionsData?.data) {
-      setTransactions(transactionsData.data)
+    if (transactionsData?.transactions) {
+      setTransactions(transactionsData.transactions)
     }
   }, [transactionsData])
 

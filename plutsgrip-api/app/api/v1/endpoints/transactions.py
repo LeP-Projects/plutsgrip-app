@@ -19,6 +19,7 @@ from app.schemas.transaction import (
     TransactionListResponse
 )
 from app.services.transaction_service import TransactionService
+from app.models.category import TransactionType
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
@@ -43,11 +44,20 @@ async def list_transactions(
     transaction_service = TransactionService(db)
 
     skip = (page - 1) * page_size
+
+    # Convert string type to TransactionType enum
+    transaction_type = None
+    if type:
+        try:
+            transaction_type = TransactionType(type.lower())
+        except (ValueError, AttributeError):
+            transaction_type = None
+
     transactions = await transaction_service.get_user_transactions(
         user_id=current_user.id,
         skip=skip,
         limit=page_size,
-        transaction_type=type,
+        transaction_type=transaction_type,
         category_id=category
     )
 

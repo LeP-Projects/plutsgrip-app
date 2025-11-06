@@ -99,7 +99,7 @@ export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
   })
 
   // Usa categorias da API ou lista vazia
-  const categories = categoriesData || []
+  const categories = categoriesData?.categories || []
 
   const t = translations[language as keyof typeof translations]
 
@@ -276,7 +276,7 @@ export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
+                      <SelectItem key={category.id} value={String(category.id)}>
                         {category.name}
                       </SelectItem>
                     ))}
