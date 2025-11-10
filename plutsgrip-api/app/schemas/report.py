@@ -4,7 +4,7 @@ Report schemas for dashboard and financial summaries
 from datetime import date
 from decimal import Decimal
 from typing import Optional, Dict
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 
 class DashboardResponse(BaseModel):
@@ -16,6 +16,11 @@ class DashboardResponse(BaseModel):
     income_count: int
     expense_count: int
 
+    @field_serializer('total_income', 'total_expense', 'balance')
+    def serialize_amounts(self, value: Decimal) -> float:
+        """Serialize Decimal amounts to float for JSON compatibility"""
+        return float(value)
+
 
 class CategorySummary(BaseModel):
     """Schema for category summary in reports"""
@@ -24,6 +29,11 @@ class CategorySummary(BaseModel):
     total: Decimal
     count: int
     percentage: float
+
+    @field_serializer('total')
+    def serialize_total(self, value: Decimal) -> float:
+        """Serialize Decimal total to float for JSON compatibility"""
+        return float(value)
 
 
 class FinancialSummaryResponse(BaseModel):
@@ -37,6 +47,11 @@ class FinancialSummaryResponse(BaseModel):
     income_by_category: list[CategorySummary]
     expense_by_category: list[CategorySummary]
     daily_totals: Dict[str, Dict[str, Decimal]]  # {date: {income: x, expense: y}}
+
+    @field_serializer('total_income', 'total_expense', 'net_balance')
+    def serialize_amounts(self, value: Decimal) -> float:
+        """Serialize Decimal amounts to float for JSON compatibility"""
+        return float(value)
 
 
 class ReportFilters(BaseModel):
