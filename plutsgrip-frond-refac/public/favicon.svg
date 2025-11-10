@@ -1,0 +1,31 @@
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="32" fill="#003D7A"/>
+
+  <!-- Green accent shapes representing money/growth -->
+  <g fill="#4CAF50">
+    <!-- Left bills -->
+    <rect x="12" y="24" width="16" height="8" rx="1" opacity="0.9"/>
+    <rect x="14" y="26" width="12" height="4" rx="0.5" fill="#003D7A" opacity="0.3"/>
+
+    <!-- Right bills -->
+    <rect x="36" y="20" width="16" height="8" rx="1"/>
+    <rect x="38" y="22" width="12" height="4" rx="0.5" fill="#003D7A" opacity="0.3"/>
+
+    <!-- Middle bills -->
+    <rect x="24" y="32" width="16" height="8" rx="1" opacity="0.85"/>
+    <rect x="26" y="34" width="12" height="4" rx="0.5" fill="#003D7A" opacity="0.3"/>
+  </g>
+
+  <!-- White hand/fist holding money -->
+  <g fill="white" stroke="none">
+    <!-- Fist -->
+    <circle cx="32" cy="42" r="8"/>
+    <!-- Thumb -->
+    <ellipse cx="26" cy="37" rx="3" ry="4" transform="rotate(-35 26 37)"/>
+    <!-- Fingers -->
+    <rect x="29" y="33" width="2.5" height="10" rx="1.2"/>
+    <rect x="33" y="33" width="2.5" height="10" rx="1.2"/>
+    <rect x="37" y="34" width="2.5" height="9" rx="1.2"/>
+  </g>
+</svg>
