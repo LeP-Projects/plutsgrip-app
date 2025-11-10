@@ -57,7 +57,7 @@ export function IncomeChart({ language, filters }: IncomeChartProps) {
 
     // Apply category filter
     if (filters?.category && filters.category !== "all") {
-      filtered = filtered.filter((transaction) => transaction.category === filters.category)
+      filtered = filtered.filter((transaction) => transaction.category?.name === filters.category)
     }
 
     // Group by month and sum income

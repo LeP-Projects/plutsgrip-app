@@ -61,7 +61,7 @@ export function ColumnChart({ language, filters }: ColumnChartProps) {
 
     // Apply category filter
     if (filters?.category && filters.category !== "all") {
-      filtered = filtered.filter((transaction) => transaction.category === filters.category)
+      filtered = filtered.filter((transaction) => transaction.category?.name === filters.category)
     }
 
     // Apply type filter

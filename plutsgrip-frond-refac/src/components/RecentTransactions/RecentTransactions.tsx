@@ -164,10 +164,10 @@ export function RecentTransactions({
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch =
       transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.category?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (transaction.notes && transaction.notes.toLowerCase().includes(searchTerm.toLowerCase()))
 
-    const matchesCategory = categoryFilter === "all" || transaction.category === categoryFilter
+    const matchesCategory = categoryFilter === "all" || transaction.category?.name === categoryFilter
 
     const effectiveTypeFilter = typeFilter !== "all" ? typeFilter : internalTypeFilter
     const matchesType = effectiveTypeFilter === "all" || transaction.type === effectiveTypeFilter
@@ -258,7 +258,7 @@ export function RecentTransactions({
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground truncate">{transaction.description}</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(transaction.date).toLocaleDateString()} • {transaction.category}
+                      {new Date(transaction.date).toLocaleDateString()} • {transaction.category?.name || "Uncategorized"}
                     </p>
                     {transaction.notes && (
                       <p className="text-xs text-muted-foreground mt-1 italic line-clamp-2">

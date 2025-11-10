@@ -71,18 +71,18 @@ export function CategoryChart({ language, filters }: CategoryChartProps) {
 
     // Apply category filter
     if (filters?.category && filters.category !== "all") {
-      filtered = filtered.filter((transaction) => transaction.category === filters.category)
+      filtered = filtered.filter((transaction) => transaction.category?.name === filters.category)
     }
 
     // Group by category and sum amounts
     const categoryData: { [key: string]: any } = {}
     filtered.forEach((transaction) => {
-      const category = transaction.category
+      const category = transaction.category?.name || "Uncategorized"
       if (!categoryData[category]) {
         categoryData[category] = {
           name: category,
           value: 0,
-          color: categoryColors[category as keyof typeof categoryColors] || "#6b7280",
+          color: transaction.category?.color || categoryColors[category as keyof typeof categoryColors] || "#6b7280",
         }
       }
       categoryData[category].value += transaction.amount

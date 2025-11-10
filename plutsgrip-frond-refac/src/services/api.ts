@@ -42,6 +42,7 @@ export interface Transaction {
   amount: number
   type: "income" | "expense"
   category_id: number
+  category?: Category
   date: string
   notes?: string
   user_id: string

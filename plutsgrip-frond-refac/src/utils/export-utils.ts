@@ -15,12 +15,24 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (char) => map[char])
 }
 
+interface Category {
+  id: string
+  name: string
+  type: "income" | "expense"
+  color?: string
+  icon?: string
+  is_default: boolean
+  user_id?: string
+  created_at?: string
+  updated_at?: string
+}
+
 interface Transaction {
   id: string
   description: string
   amount: number
   date: string
-  category: string
+  category?: Category
   type: "expense" | "income"
   notes?: string
 }
@@ -157,7 +169,7 @@ const mockTransactions: Transaction[] = [
 function filterTransactions(transactions: Transaction[], filters: ReportFilters): Transaction[] {
   return transactions.filter((transaction) => {
     // Category filter
-    if (filters.category !== "all" && transaction.category !== filters.category) {
+    if (filters.category !== "all" && transaction.category?.name !== filters.category) {
       return false
     }
 
@@ -295,7 +307,7 @@ export function generatePDFReport(filters: ReportFilters, language: string) {
               <tr>
                 <td>${format(new Date(transaction.date), "PP")}</td>
                 <td>${escapeHtml(transaction.description)}</td>
-                <td>${escapeHtml(transaction.category)}</td>
+                <td>${escapeHtml(transaction.category?.name || "Uncategorized")}</td>
                 <td>${transaction.type === "income" ? t.income : t.expense}</td>
                 <td class="amount-${transaction.type}">
                   ${transaction.type === "expense" ? "-" : "+"}$${transaction.amount.toFixed(2)}
@@ -356,7 +368,7 @@ export function generateExcelReport(filters: ReportFilters, language: string) {
     // Transaction data
     ...filteredTransactions.map(
       (transaction) =>
-        `${format(new Date(transaction.date), "PP")},"${transaction.description}","${transaction.category}","${
+        `${format(new Date(transaction.date), "PP")},"${transaction.description}","${transaction.category?.name || "Uncategorized"}","${
           transaction.type === "income" ? t.income : t.expense
         }","${transaction.type === "expense" ? "-" : "+"}$${transaction.amount.toFixed(2)}","${
           transaction.notes || ""

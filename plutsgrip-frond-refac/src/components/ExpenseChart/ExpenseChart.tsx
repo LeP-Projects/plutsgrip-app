@@ -57,7 +57,7 @@ export function ExpenseChart({ language, filters }: ExpenseChartProps) {
 
     // Apply category filter
     if (filters?.category && filters.category !== "all") {
-      filtered = filtered.filter((transaction) => transaction.category === filters.category)
+      filtered = filtered.filter((transaction) => transaction.category?.name === filters.category)
     }
 
     // Group by month and sum expenses
