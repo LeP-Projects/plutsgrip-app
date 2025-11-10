@@ -36,9 +36,9 @@ class TransactionRepository(BaseRepository[Transaction]):
             category_id: Optional filter by category
 
         Returns:
-            List of transactions
+            List of transactions with relationships loaded
         """
-        query = select(Transaction).options(selectinload(Transaction.category)).where(Transaction.user_id == user_id)
+        query = select(Transaction).options(selectinload(Transaction.category), selectinload(Transaction.user)).where(Transaction.user_id == user_id)
 
         if transaction_type:
             query = query.where(Transaction.type == transaction_type)
@@ -66,9 +66,9 @@ class TransactionRepository(BaseRepository[Transaction]):
             end_date: End date
 
         Returns:
-            List of transactions
+            List of transactions with relationships loaded
         """
-        query = select(Transaction).options(selectinload(Transaction.category)).where(
+        query = select(Transaction).options(selectinload(Transaction.category), selectinload(Transaction.user)).where(
             and_(
                 Transaction.user_id == user_id,
                 Transaction.date >= start_date,
@@ -78,6 +78,21 @@ class TransactionRepository(BaseRepository[Transaction]):
 
         result = await self.db.execute(query)
         return list(result.scalars().all())
+
+    async def get_by_id(self, id: int) -> Optional[Transaction]:
+        """
+        Get a single transaction by ID with relationships loaded
+
+        Overrides base class to ensure relationships are loaded with selectinload
+        to avoid greenlet issues in async context
+        """
+        query = select(Transaction).options(
+            selectinload(Transaction.category),
+            selectinload(Transaction.user)
+        ).where(Transaction.id == id)
+
+        result = await self.db.execute(query)
+        return result.scalars().first()
 
     async def count_by_user(self, user_id: int) -> int:
         """Count transactions for a specific user"""

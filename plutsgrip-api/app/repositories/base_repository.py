@@ -43,7 +43,8 @@ class BaseRepository(Generic[ModelType]):
         db_obj = self.model(**obj_in)
         self.db.add(db_obj)
         await self.db.flush()
-        await self.db.refresh(db_obj)
+        # Refresh without loading relationships to avoid greenlet issues
+        # Use refresh with specific attributes only if needed in subclasses
         return db_obj
 
     async def update(self, id: int, obj_in: dict) -> Optional[ModelType]:

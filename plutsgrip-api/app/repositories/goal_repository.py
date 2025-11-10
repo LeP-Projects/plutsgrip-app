@@ -3,6 +3,7 @@ Repositório de Metas para operações com banco de dados
 """
 from typing import List, Optional
 from sqlalchemy import select, and_
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.goal import Goal
 from app.repositories.base_repository import BaseRepository
@@ -14,6 +15,20 @@ class GoalRepository(BaseRepository[Goal]):
     def __init__(self, db: AsyncSession):
         super().__init__(Goal, db)
 
+    async def get_by_id(self, id: int) -> Optional[Goal]:
+        """
+        Get a single goal by ID with relationships loaded
+
+        Overrides base class to ensure relationships are loaded with selectinload
+        to avoid greenlet issues in async context
+        """
+        query = select(Goal).options(
+            selectinload(Goal.user)
+        ).where(Goal.id == id)
+
+        result = await self.db.execute(query)
+        return result.scalars().first()
+
     async def get_by_user_id(
         self,
         user_id: int,
@@ -22,7 +37,7 @@ class GoalRepository(BaseRepository[Goal]):
         is_completed: Optional[bool] = None
     ) -> List[Goal]:
         """
-        Obtém metas de um usuário
+        Obtém metas de um usuário com relacionamentos carregados
 
         Args:
             user_id: ID do usuário
@@ -31,9 +46,11 @@ class GoalRepository(BaseRepository[Goal]):
             is_completed: Filtrar por status (opcional)
 
         Returns:
-            Lista de metas
+            Lista de metas com relacionamentos carregados
         """
-        query = select(Goal).where(Goal.user_id == user_id)
+        query = select(Goal).options(
+            selectinload(Goal.user)
+        ).where(Goal.user_id == user_id)
 
         if is_completed is not None:
             query = query.where(Goal.is_completed == is_completed)
@@ -48,16 +65,18 @@ class GoalRepository(BaseRepository[Goal]):
         priority: str
     ) -> List[Goal]:
         """
-        Obtém metas de um usuário por prioridade
+        Obtém metas de um usuário por prioridade com relacionamentos carregados
 
         Args:
             user_id: ID do usuário
             priority: Prioridade (low, medium, high)
 
         Returns:
-            Lista de metas
+            Lista de metas com relacionamentos carregados
         """
-        query = select(Goal).where(
+        query = select(Goal).options(
+            selectinload(Goal.user)
+        ).where(
             and_(
                 Goal.user_id == user_id,
                 Goal.priority == priority
