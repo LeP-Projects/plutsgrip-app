@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs"
 import { useApi } from "@/hooks/useApi"
 import { apiService } from "@/services/api"
 import { useAuth } from "@/contexts/AuthContext"
+import { calculatePercentageChange, formatPercentage } from "@/utils/calculations"
 import {
   PlusCircle,
   TrendingUp,
@@ -135,6 +136,48 @@ export function Dashboard() {
     true // fetch immediately
   )
 
+  // Busca dados de tendências para calcular percentual de mudança
+  const { data: trendsData } = useApi(
+    () => apiService.getMonthlyTrends(2), // Últimos 2 meses para comparação
+    true // fetch immediately
+  )
+
+  // Busca dados de orçamentos para calcular percentual de uso
+  const { data: budgetsData } = useApi(
+    () => apiService.listBudgets(0, 100),
+    true // fetch immediately
+  )
+
+  // Calcula percentuais de mudança comparando mês atual com anterior
+  const balanceChangePercent = trendsData && trendsData.balance?.length >= 2
+    ? calculatePercentageChange(
+        trendsData.balance[trendsData.balance.length - 1]?.value || 0,
+        trendsData.balance[trendsData.balance.length - 2]?.value || 0
+      )
+    : 0
+
+  const expenseChangePercent = trendsData && trendsData.expense?.length >= 2
+    ? calculatePercentageChange(
+        trendsData.expense[trendsData.expense.length - 1]?.value || 0,
+        trendsData.expense[trendsData.expense.length - 2]?.value || 0
+      )
+    : 0
+
+  const incomeChangePercent = trendsData && trendsData.income?.length >= 2
+    ? calculatePercentageChange(
+        trendsData.income[trendsData.income.length - 1]?.value || 0,
+        trendsData.income[trendsData.income.length - 2]?.value || 0
+      )
+    : 0
+
+  // Calcula percentual de uso de orçamento
+  const budgetUsagePercent = budgetsData && budgetsData.length > 0
+    ? (budgetsData.reduce((total, budget) => total + (budget.amount || 0), 0) > 0
+        ? (dashboardData?.total_expense || 0) /
+          (budgetsData.reduce((total, budget) => total + (budget.amount || 0), 0)) * 100
+        : 0)
+    : 0
+
   // Usa dados da API ou valores padrão
   // Mapeia os dados da API (snake_case) para o formato esperado
   const filteredData = dashboardData ? {
@@ -142,11 +185,19 @@ export function Dashboard() {
     monthlyExpenses: dashboardData.total_expense || 0,
     monthlyIncome: dashboardData.total_income || 0,
     budgetRemaining: dashboardData.balance || 0, // Usa balance como orçamento restante
+    balanceChangePercent,
+    expenseChangePercent,
+    incomeChangePercent,
+    budgetUsagePercent,
   } : {
     totalBalance: 0,
     monthlyExpenses: 0,
     monthlyIncome: 0,
     budgetRemaining: 0,
+    balanceChangePercent: 0,
+    expenseChangePercent: 0,
+    incomeChangePercent: 0,
+    budgetUsagePercent: 0,
   }
 
   useEffect(() => {
@@ -338,7 +389,9 @@ export function Dashboard() {
                         {formatCurrency(convertAmount(filteredData.totalBalance, "USD", currency))}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        <span className="text-green-600">+2.5%</span> {t.fromLastMonth}
+                        <span className={filteredData.balanceChangePercent >= 0 ? "text-green-600" : "text-red-600"}>
+                          {formatPercentage(filteredData.balanceChangePercent)}
+                        </span> {t.fromLastMonth}
                       </p>
                     </CardContent>
                   </Card>
@@ -353,7 +406,9 @@ export function Dashboard() {
                         {formatCurrency(convertAmount(filteredData.monthlyExpenses, "USD", currency))}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        <span className="text-red-600">+12.3%</span> {t.fromLastMonth}
+                        <span className={filteredData.expenseChangePercent >= 0 ? "text-red-600" : "text-green-600"}>
+                          {formatPercentage(filteredData.expenseChangePercent)}
+                        </span> {t.fromLastMonth}
                       </p>
                     </CardContent>
                   </Card>
@@ -368,7 +423,9 @@ export function Dashboard() {
                         {formatCurrency(convertAmount(filteredData.monthlyIncome, "USD", currency))}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        <span className="text-green-600">+8.2%</span> {t.fromLastMonth}
+                        <span className={filteredData.incomeChangePercent >= 0 ? "text-green-600" : "text-red-600"}>
+                          {formatPercentage(filteredData.incomeChangePercent)}
+                        </span> {t.fromLastMonth}
                       </p>
                     </CardContent>
                   </Card>
@@ -382,7 +439,11 @@ export function Dashboard() {
                       <div className="text-2xl font-bold text-secondary">
                         {formatCurrency(convertAmount(filteredData.budgetRemaining, "USD", currency))}
                       </div>
-                      <p className="text-xs text-muted-foreground">62% {t.ofMonthlyBudget}</p>
+                      <p className="text-xs text-muted-foreground">
+                        <span className={filteredData.budgetUsagePercent <= 100 ? "text-green-600" : "text-red-600"}>
+                          {formatPercentage(filteredData.budgetUsagePercent, 0)}
+                        </span> {t.ofMonthlyBudget}
+                      </p>
                     </CardContent>
                   </Card>
                 </div>
