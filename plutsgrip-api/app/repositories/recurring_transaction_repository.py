@@ -16,6 +16,25 @@ class RecurringTransactionRepository(BaseRepository[RecurringTransaction]):
     def __init__(self, db: AsyncSession):
         super().__init__(RecurringTransaction, db)
 
+    async def create(self, obj_in: dict) -> RecurringTransaction:
+        """
+        Create a new recurring transaction with relationships loaded
+
+        Overrides base class to ensure relationships are loaded with selectinload
+        to avoid greenlet issues in async context when Pydantic validates the response
+
+        Args:
+            obj_in: Dictionary with recurring transaction data
+
+        Returns:
+            RecurringTransaction object with all relationships loaded
+        """
+        # Create the recurring transaction using base method (insert + flush)
+        recurring_transaction = await super().create(obj_in)
+
+        # Reload with relationships using get_by_id which has selectinload
+        return await self.get_by_id(recurring_transaction.id)
+
     async def get_by_id(self, id: int) -> Optional[RecurringTransaction]:
         """
         Get a single recurring transaction by ID with relationships loaded

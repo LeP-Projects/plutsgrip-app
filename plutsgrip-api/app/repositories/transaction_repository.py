@@ -79,6 +79,25 @@ class TransactionRepository(BaseRepository[Transaction]):
         result = await self.db.execute(query)
         return list(result.scalars().all())
 
+    async def create(self, obj_in: dict) -> Transaction:
+        """
+        Create a new transaction with relationships loaded
+
+        Overrides base class to ensure relationships are loaded with selectinload
+        to avoid greenlet issues in async context when Pydantic validates the response
+
+        Args:
+            obj_in: Dictionary with transaction data
+
+        Returns:
+            Transaction object with all relationships loaded
+        """
+        # Create the transaction using base method (insert + flush)
+        transaction = await super().create(obj_in)
+
+        # Reload with relationships using get_by_id which has selectinload
+        return await self.get_by_id(transaction.id)
+
     async def get_by_id(self, id: int) -> Optional[Transaction]:
         """
         Get a single transaction by ID with relationships loaded

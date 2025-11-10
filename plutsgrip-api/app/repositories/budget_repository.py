@@ -15,6 +15,25 @@ class BudgetRepository(BaseRepository[Budget]):
     def __init__(self, db: AsyncSession):
         super().__init__(Budget, db)
 
+    async def create(self, obj_in: dict) -> Budget:
+        """
+        Create a new budget with relationships loaded
+
+        Overrides base class to ensure relationships are loaded with selectinload
+        to avoid greenlet issues in async context when Pydantic validates the response
+
+        Args:
+            obj_in: Dictionary with budget data
+
+        Returns:
+            Budget object with all relationships loaded
+        """
+        # Create the budget using base method (insert + flush)
+        budget = await super().create(obj_in)
+
+        # Reload with relationships using get_by_id which has selectinload
+        return await self.get_by_id(budget.id)
+
     async def get_by_id(self, id: int) -> Optional[Budget]:
         """
         Get a single budget by ID with relationships loaded
