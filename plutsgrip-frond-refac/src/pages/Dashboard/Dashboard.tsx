@@ -123,7 +123,7 @@ export function Dashboard() {
   const [language, setLanguage] = useState("en")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const isMobile = useIsMobile()
-  const { formatCurrency, convertAmount, currency } = useCurrency()
+  const { formatCurrency } = useCurrency()
   const [dashboardFilters, setDashboardFilters] = useState({
     timeRange: "thisMonth",
     category: "all",
@@ -386,7 +386,7 @@ export function Dashboard() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-primary">
-                        {formatCurrency(convertAmount(filteredData.totalBalance, "USD", currency))}
+                        {formatCurrency(filteredData.totalBalance)}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         <span className={filteredData.balanceChangePercent >= 0 ? "text-green-600" : "text-red-600"}>
@@ -403,7 +403,7 @@ export function Dashboard() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-destructive">
-                        {formatCurrency(convertAmount(filteredData.monthlyExpenses, "USD", currency))}
+                        {formatCurrency(filteredData.monthlyExpenses)}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         <span className={filteredData.expenseChangePercent >= 0 ? "text-red-600" : "text-green-600"}>
@@ -420,7 +420,7 @@ export function Dashboard() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-green-600">
-                        {formatCurrency(convertAmount(filteredData.monthlyIncome, "USD", currency))}
+                        {formatCurrency(filteredData.monthlyIncome)}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         <span className={filteredData.incomeChangePercent >= 0 ? "text-green-600" : "text-red-600"}>
@@ -437,7 +437,7 @@ export function Dashboard() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-secondary">
-                        {formatCurrency(convertAmount(filteredData.budgetRemaining, "USD", currency))}
+                        {formatCurrency(filteredData.budgetRemaining)}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         <span className={filteredData.budgetUsagePercent <= 100 ? "text-green-600" : "text-red-600"}>
@@ -480,7 +480,11 @@ export function Dashboard() {
 
               <TabsContent value="all" className="space-y-6">
                 <ExpenseForm language={language} />
-                <RecentTransactions showAll language={language} />
+                <RecentTransactions 
+                  showAll 
+                  typeFilter="all" 
+                  language={language} 
+                  />
               </TabsContent>
 
               <TabsContent value="income" className="space-y-6">

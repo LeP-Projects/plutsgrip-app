@@ -31,7 +31,17 @@ interface Transaction {
   description: string
   amount: number
   date: string
-  category: string
+  category: {
+    id: string
+    name: string
+    type: string
+    color: string
+    icon: string
+    is_default: boolean
+    user_id: string
+    created_at: string
+    updated_at: string
+  } | null
   type: "expense" | "income"
   notes?: string
 }
@@ -178,7 +188,7 @@ export function RecentTransactions({
   })
 
   const displayTransactions = showAll ? filteredTransactions : filteredTransactions.slice(0, 5)
-  const categories = Array.from(new Set(transactions.map((t) => t.category)))
+  const categories = Array.from(new Set(transactions.map((t) => t.category?.name).filter(Boolean)))
 
   return (
     <Card>
@@ -387,14 +397,14 @@ export function RecentTransactions({
                   <Label htmlFor="category">
                     {t.category} {t.required}
                   </Label>
-                  <Select name="category" defaultValue={editingTransaction.category} required>
+                  <Select name="category" defaultValue={editingTransaction.category?.name} required>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
+                      {categories.map((categoryName) => (
+                        <SelectItem key={categoryName} value={categoryName}>
+                          {categoryName}
                         </SelectItem>
                       ))}
                     </SelectContent>
