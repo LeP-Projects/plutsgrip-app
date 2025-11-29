@@ -366,7 +366,10 @@ export function Dashboard() {
                     <h2 className="text-2xl sm:text-3xl font-serif font-bold text-foreground">{t.financialOverview}</h2>
                     <p className="text-sm sm:text-base text-muted-foreground">{t.trackExpenses}</p>
                   </div>
-                  <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
+                  <Button 
+                    className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
+                    onClick={() => handleTabChange("transactions")}
+                    >
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {t.addTransaction}
                   </Button>
