@@ -240,13 +240,14 @@ export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
                 <PopoverContent className="w-auto p-0">
                   <Calendar
                     selected={date}
-                    onSelect={(selectedDate) => {
+                    onSelect={(selectedDate: Date | undefined) => {
                       setDate(selectedDate)
                       if (errors.date) {
                         setErrors((prev) => ({ ...prev, date: false }))
                       }
                     }}
                     initialFocus
+                    className="[--cell-size:1.75rem] md:[--cell-size:2.5rem]"
                   />
                 </PopoverContent>
               </Popover>

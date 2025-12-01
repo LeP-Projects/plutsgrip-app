@@ -7,7 +7,9 @@
       "Bash(git reset:*)",
       "Bash(find:*)",
       "Bash(/dev/null)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

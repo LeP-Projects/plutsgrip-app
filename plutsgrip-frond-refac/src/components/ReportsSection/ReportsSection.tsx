@@ -218,6 +218,7 @@ export function ReportsSection({ language }: ReportsSectionProps) {
                           mode="single"
                           selected={startDate}
                           onSelect={setStartDate}
+                          className="[--cell-size:1.75rem] md:[--cell-size:2.5rem]"
                         />
                       </div>
                       <div className="space-y-2">
@@ -226,6 +227,7 @@ export function ReportsSection({ language }: ReportsSectionProps) {
                           mode="single"
                           selected={endDate}
                           onSelect={setEndDate}
+                          className="[--cell-size:1.75rem] md:[--cell-size:2.5rem]"
                         />
                       </div>
                       <div className="flex gap-2">

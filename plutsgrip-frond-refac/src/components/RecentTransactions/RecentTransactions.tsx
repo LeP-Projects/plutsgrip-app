@@ -215,10 +215,11 @@ export function RecentTransactions({
                     📅
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="w-auto max-w-[320px] sm:max-w-sm md:max-w-md p-0">
                   <Calendar
                     selected={dateFilter}
                     onSelect={setDateFilter}
+                    className="[--cell-size:1.75rem] md:[--cell-size:2.5rem]"
                   />
                   <div className="p-3 border-t">
                     <Button variant="outline" size="sm" onClick={() => setDateFilter(undefined)} className="w-full">
