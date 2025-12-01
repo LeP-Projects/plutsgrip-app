@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card"
 import { Button } from "@/components/Button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select"
-import { Calendar, Filter, RotateCcw, Download, FileText, FileSpreadsheet } from "lucide-react"
+import { Filter, RotateCcw, Download, FileText, FileSpreadsheet } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover"
-import { Calendar as CalendarComponent } from "@/components/Calendar"
+import { Calendar } from "@/components/Calendar"
 import { ExpenseChart } from "@/components/ExpenseChart"
 import { IncomeChart } from "@/components/IncomeChart"
 import { CategoryChart } from "@/components/CategoryChart"
@@ -214,20 +214,18 @@ export function ReportsSection({ language }: ReportsSectionProps) {
                     <div className="p-4 space-y-4">
                       <div className="space-y-2">
                         <label className="text-sm font-medium">{t.startDate}</label>
-                        <CalendarComponent
+                        <Calendar
                           mode="single"
                           selected={startDate}
                           onSelect={setStartDate}
-                          language={language}
                         />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium">{t.endDate}</label>
-                        <CalendarComponent
+                        <Calendar
                           mode="single"
                           selected={endDate}
                           onSelect={setEndDate}
-                          language={language}
                         />
                       </div>
                       <div className="flex gap-2">

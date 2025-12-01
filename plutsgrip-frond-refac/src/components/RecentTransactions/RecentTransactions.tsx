@@ -3,10 +3,10 @@ import { Badge } from "@/components/Badge"
 import { Button } from "@/components/Button"
 import { Input } from "@/components/Input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select"
-import { MoreHorizontal, Edit, Trash2, Search, Calendar } from "lucide-react"
+import { MoreHorizontal, Edit, Trash2, Search } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/DropdownMenu"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover"
-import { Calendar as CalendarComponent } from "@/components/Calendar"
+import { Calendar } from "@/components/Calendar"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -212,12 +212,14 @@ export function RecentTransactions({
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full sm:w-auto sm:min-w-[140px] justify-start bg-transparent">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {dateFilter ? format(dateFilter, "MMM dd") : t.dateFilter}
+                    📅
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <CalendarComponent mode="single" selected={dateFilter} onSelect={setDateFilter} initialFocus />
+                  <Calendar
+                    selected={dateFilter}
+                    onSelect={setDateFilter}
+                  />
                   <div className="p-3 border-t">
                     <Button variant="outline" size="sm" onClick={() => setDateFilter(undefined)} className="w-full">
                       {language === "pt" ? "Limpar Filtro" : "Clear Filter"}

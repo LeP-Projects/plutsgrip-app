@@ -239,7 +239,6 @@ export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar
-                    mode="single"
                     selected={date}
                     onSelect={(selectedDate) => {
                       setDate(selectedDate)
@@ -247,7 +246,6 @@ export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
                         setErrors((prev) => ({ ...prev, date: false }))
                       }
                     }}
-                    language={language}
                     initialFocus
                   />
                 </PopoverContent>
