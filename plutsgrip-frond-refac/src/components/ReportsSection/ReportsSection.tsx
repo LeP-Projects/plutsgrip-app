@@ -185,7 +185,6 @@ export function ReportsSection({ language }: ReportsSectionProps) {
               {/* Time Range Filter */}
               <Select value={filters.timeRange} onValueChange={(value) => handleFilterChange("timeRange", value)}>
                 <SelectTrigger>
-                  <Calendar className="h-4 w-4 mr-2" />
                   <SelectValue placeholder={t.timeRange} />
                 </SelectTrigger>
                 <SelectContent>
@@ -203,14 +202,13 @@ export function ReportsSection({ language }: ReportsSectionProps) {
               {filters.timeRange === "custom" && (
                 <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="justify-start bg-transparent">
-                      <Calendar className="h-4 w-4 mr-2" />
+                    <Button variant="outline" className="flex justify-self-end justify-center max-w-3xs bg-transparent">
                       {startDate && endDate
                         ? `${format(startDate, "MMM dd")} - ${format(endDate, "MMM dd")}`
                         : t.selectStartDate}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto overflow-hidden p-0" align="start">
                     <div className="p-4 space-y-4">
                       <div className="space-y-2">
                         <label className="text-sm font-medium">{t.startDate}</label>
@@ -218,7 +216,7 @@ export function ReportsSection({ language }: ReportsSectionProps) {
                           mode="single"
                           selected={startDate}
                           onSelect={setStartDate}
-                          className="[--cell-size:1.75rem] md:[--cell-size:2.5rem]"
+                          className="[--cell-size:2.75rem] p-3"
                         />
                       </div>
                       <div className="space-y-2">
@@ -227,7 +225,7 @@ export function ReportsSection({ language }: ReportsSectionProps) {
                           mode="single"
                           selected={endDate}
                           onSelect={setEndDate}
-                          className="[--cell-size:1.75rem] md:[--cell-size:2.5rem]"
+                          className="[--cell-size:2.75rem] p-3"
                         />
                       </div>
                       <div className="flex gap-2">
