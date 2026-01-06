@@ -9,8 +9,27 @@ from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy import text
 from app.core.database import Base, get_db
-from app.core.config import settings
 from main import app
+from app.core.rate_limiter import limiter
+
+@pytest.fixture(scope="session")
+def event_loop():
+    """Foundational event loop fixture for async tests"""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
+
+@pytest.fixture(autouse=True)
+def disable_rate_limit():
+    """Disable rate limiting by default for tests"""
+    limiter.enabled = False
+    # Clear storage to ensure fresh state if we do enable it
+    # accessing the private storage attribute if necessary, or assuming in-memory
+    if hasattr(limiter, '_storage'):
+         limiter._storage.reset()
+    yield
+    limiter.enabled = True # Restore default (or Settings default)
+
 
 # Test database URL (use a separate database for testing)
 # Use "postgres" as hostname when running in Docker, "localhost" when running locally
@@ -45,8 +64,19 @@ async def test_engine():
 
     engine = create_async_engine(TEST_DATABASE_URL, echo=False, pool_pre_ping=True)
 
-    # Create all tables
+    # Create all tables (Force clean state using schema drop)
     async with engine.begin() as conn:
+        # Check if we can just drop invalid tables, but resetting schema is safer for tests
+        try:
+            await conn.execute(text("DROP SCHEMA public CASCADE"))
+            await conn.execute(text("CREATE SCHEMA public"))
+            await conn.execute(text("GRANT ALL ON SCHEMA public TO plutusgrip_user"))
+            # Standard postgres public schema permissions
+            await conn.execute(text("GRANT ALL ON SCHEMA public TO public"))
+        except Exception:
+            # Fallback if schema ops fail (e.g. permissions)
+            await conn.run_sync(Base.metadata.drop_all)
+            
         await conn.run_sync(Base.metadata.create_all)
 
     yield engine

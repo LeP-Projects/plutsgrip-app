@@ -63,5 +63,7 @@ def is_ip_whitelisted(ip: str) -> bool:
     return ip in _whitelist_cache
 
 
+from app.core.config import settings
+
 # Create the limiter with custom key function
-limiter = Limiter(key_func=get_rate_limit_key)
+limiter = Limiter(key_func=get_rate_limit_key, enabled=settings.RATE_LIMIT_ENABLED)
