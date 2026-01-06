@@ -100,12 +100,14 @@ class CategoryService:
 
         Args:
             category_id: Category ID to update
-            **kwargs: Fields to update (name, transaction_type, color, icon)
+            **kwargs: Fields to update (name, type, color, icon)
 
         Returns:
             Updated category object or None if not found
         """
-        return await self.category_repo.update(category_id, **kwargs)
+        updated = await self.category_repo.update(category_id, kwargs)
+        await self.db.commit()
+        return updated
 
     async def delete_category(self, category_id: int) -> bool:
         """

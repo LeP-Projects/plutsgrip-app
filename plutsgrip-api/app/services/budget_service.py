@@ -6,7 +6,7 @@ from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
-from app.models.budget import Budget
+from app.models.budget import Budget, BudgetPeriod
 from app.models.transaction import Transaction
 from app.models.category import TransactionType
 from app.repositories.budget_repository import BudgetRepository
@@ -40,11 +40,14 @@ class BudgetService:
         Returns:
             Orçamento criado
         """
+        # Convert period string to enum
+        period_enum = BudgetPeriod(period.lower()) if isinstance(period, str) else period
+        
         budget_data = {
             "user_id": user_id,
             "category_id": category_id,
             "amount": amount,
-            "period": period,
+            "period": period_enum,
             "start_date": start_date
         }
         budget = await self.repo.create(budget_data)

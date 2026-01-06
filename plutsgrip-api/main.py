@@ -9,19 +9,33 @@ from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from contextlib import asynccontextmanager
 import time
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.core.logging import logger, log_info, log_error
-from app.core.database import init_db, close_db, seed_default_categories
+from app.core.database import init_db, close_db, seed_default_categories, AsyncSessionLocal
+from app.core.rate_limiter import limiter, update_whitelist_cache
 from app.api.v1.router import api_router
 from app.middlewares.error_handler import (
     validation_exception_handler,
     sqlalchemy_exception_handler,
     generic_exception_handler
 )
+
+
+async def sync_whitelist_cache() -> None:
+    """Sync whitelist from database to in-memory cache"""
+    from app.services.whitelist_service import WhitelistService
+    
+    async with AsyncSessionLocal() as session:
+        try:
+            service = WhitelistService(session)
+            active_ips = await service.get_active_ips()
+            update_whitelist_cache(active_ips)
+            log_info(f"Synced {len(active_ips)} IPs to whitelist cache")
+        except Exception as e:
+            log_error(f"Failed to sync whitelist cache: {e}")
 
 
 @asynccontextmanager
@@ -42,6 +56,10 @@ async def lifespan(app: FastAPI):
     # Seed default categories
     log_info("Seeding default categories...")
     await seed_default_categories()
+    
+    # Sync whitelist cache from database
+    log_info("Syncing rate limit whitelist...")
+    await sync_whitelist_cache()
 
     log_info("Application startup complete")
 
@@ -64,8 +82,7 @@ app = FastAPI(
 )
 
 
-# Rate Limiter
-limiter = Limiter(key_func=get_remote_address)
+# Rate Limiter (with whitelist support)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 

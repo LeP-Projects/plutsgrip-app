@@ -124,10 +124,6 @@ async def update_category(
 
     update_data = category_data.model_dump(exclude_unset=True)
 
-    # Handle type field mapping (TransactionType enum)
-    if "type" in update_data:
-        update_data["transaction_type"] = update_data.pop("type")
-
     updated_category = await category_service.update_category(category_id, **update_data)
 
     return CategoryResponse.model_validate(updated_category)
