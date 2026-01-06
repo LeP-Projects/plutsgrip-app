@@ -2,7 +2,7 @@
 Common schemas used across the application
 """
 from typing import Optional, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class ErrorResponse(BaseModel):
@@ -24,5 +24,4 @@ class PaginationParams(BaseModel):
     page: int = 1
     page_size: int = 20
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

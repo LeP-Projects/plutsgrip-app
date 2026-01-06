@@ -3,7 +3,7 @@ Whitelist schemas for request/response validation
 """
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field, IPvAnyAddress
+from pydantic import BaseModel, ConfigDict, Field, IPvAnyAddress
 
 
 class WhitelistCreateRequest(BaseModel):
@@ -24,8 +24,7 @@ class WhitelistResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WhitelistListResponse(BaseModel):

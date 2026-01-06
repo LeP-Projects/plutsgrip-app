@@ -92,7 +92,7 @@ async def update_budget(
 ):
     """Atualiza um orçamento"""
     service = BudgetService(db)
-    update_data = budget_data.dict(exclude_unset=True)
+    update_data = budget_data.model_dump(exclude_unset=True)
     budget = await service.update_budget(budget_id, current_user.id, **update_data)
     if not budget:
         raise HTTPException(

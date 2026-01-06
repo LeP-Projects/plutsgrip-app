@@ -4,7 +4,7 @@ Schemas de Metas Financeiras para validação de requisições/respostas
 from datetime import datetime, date as DateType
 from decimal import Decimal
 from typing import Optional
-from pydantic import BaseModel, Field, field_serializer, computed_field
+from pydantic import BaseModel, Field, ConfigDict, field_serializer, computed_field
 
 
 # Schemas de Requisição
@@ -46,8 +46,7 @@ class GoalResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
     @field_serializer('target_amount', 'current_amount')
     def serialize_amounts(self, value: Decimal) -> float:

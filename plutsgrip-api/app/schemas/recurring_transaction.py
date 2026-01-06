@@ -4,7 +4,7 @@ Schemas de Transações Recorrentes para validação de requisições/respostas
 from datetime import datetime, date as DateType
 from decimal import Decimal
 from typing import Optional, Any
-from pydantic import BaseModel, Field, field_serializer
+from pydantic import BaseModel, Field, ConfigDict, field_serializer
 from app.models.category import TransactionType
 
 
@@ -55,8 +55,7 @@ class RecurringTransactionResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
     @field_serializer('amount')
     def serialize_amount(self, value: Decimal) -> float:

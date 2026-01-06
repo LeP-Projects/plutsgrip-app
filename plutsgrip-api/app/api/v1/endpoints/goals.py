@@ -106,7 +106,7 @@ async def update_goal(
 ):
     """Atualiza uma meta"""
     service = GoalService(db)
-    update_data = goal_data.dict(exclude_unset=True)
+    update_data = goal_data.model_dump(exclude_unset=True)
     goal = await service.update_goal(goal_id, current_user.id, **update_data)
     if not goal:
         raise HTTPException(
