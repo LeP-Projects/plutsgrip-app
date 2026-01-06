@@ -16,6 +16,7 @@ from slowapi.errors import RateLimitExceeded
 from app.core.config import settings
 from app.core.logging import logger, log_info, log_error
 from app.core.database import init_db, close_db
+from app.core.rate_limit import get_remote_address_with_whitelist
 from app.api.v1.router import api_router
 from app.middlewares.error_handler import (
     validation_exception_handler,
@@ -60,8 +61,8 @@ app = FastAPI(
 )
 
 
-# Rate Limiter
-limiter = Limiter(key_func=get_remote_address)
+# Rate Limiter with Trusted IP support
+limiter = Limiter(key_func=get_remote_address_with_whitelist)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 

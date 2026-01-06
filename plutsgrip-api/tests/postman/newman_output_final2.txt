@@ -1,0 +1,274 @@
+(node:15712) [DEP0176] DeprecationWarning: fs.F_OK is deprecated, use fs.constants.F_OK instead
+(Use `node --trace-deprecation ...` to show where the warning was created)
+newman
+
+PlutusGrip API - Complete Test Suite
+
+□ Health Check
+└ API Health
+  GET http://localhost:8000/health [200 OK, 236B, 114ms]
+  √  Status code is 200
+  √  Response has healthy status
+
+□ Authentication
+└ Register User
+  POST http://localhost:8000/api/auth/register [201 Created, 317B, 1407ms]
+  √  Status code is 201
+  √  Response has user data
+
+└ Login User
+  POST http://localhost:8000/api/auth/login [200 OK, 661B, 595ms]
+  √  Status code is 200
+  √  Response has tokens
+
+└ Get Current User (Me)
+  GET http://localhost:8000/api/auth/me [200 OK, 312B, 52ms]
+  √  Status code is 200
+  √  Response has user info
+
+└ Refresh Token
+  POST http://localhost:8000/api/auth/refresh [200 OK, 307B, 33ms]
+  √  Status code is 200
+  √  Response has new access token
+
+└ Login Invalid Credentials
+  POST http://localhost:8000/api/auth/login [401 Unauthorized, 175B, 17ms]
+  √  Status code is 401
+  √  Response has error message
+
+└ Access Protected Route without Token
+  GET http://localhost:8000/api/auth/me [403 Forbidden, 162B, 15ms]
+  √  Status code is 401 or 403
+
+□ Categories
+└ List All Categories
+  GET http://localhost:8000/api/categories [200 OK, 922B, 41ms]
+  √  Status code is 200
+  √  Response has categories array
+
+└ List Categories by Type (Expense)
+  GET http://localhost:8000/api/categories?type=EXPENSE [200 OK, 734B, 50ms]
+  √  Status code is 200
+  √  All categories are expense type
+
+└ List Categories by Type (Income)
+  GET http://localhost:8000/api/categories?type=INCOME [200 OK, 340B, 47ms]
+  √  Status code is 200
+  √  All categories are income type
+
+└ Get Category by ID
+  GET http://localhost:8000/api/categories/1 [200 OK, 320B, 33ms]
+  √  Status code is 200
+  √  Response has category data
+
+└ Get Category Not Found
+  GET http://localhost:8000/api/categories/99999 [404 Not Found, 163B, 22ms]
+  √  Status code is 404
+
+□ Transactions
+└ Create Transaction (Expense)
+  POST http://localhost:8000/api/transactions [201 Created, 681B, 148ms]
+  √  Status code is 201
+  √  Response has transaction data
+
+└ Create Transaction (Income)
+  POST http://localhost:8000/api/transactions [201 Created, 472B, 83ms]
+  √  Status code is 201
+  √  Response has income transaction data
+
+└ List All Transactions
+  GET http://localhost:8000/api/transactions [200 OK, 1.07kB, 105ms]
+  √  Status code is 200
+  √  Response has transactions array
+
+└ List Transactions by Type
+  GET http://localhost:8000/api/transactions?type=EXPENSE [200 OK, 729B, 148ms]
+  √  Status code is 200
+  √  All transactions are expense type
+
+└ Get Transaction by ID
+  GET http://localhost:8000/api/transactions/17 [200 OK, 676B, 92ms]
+  √  Status code is 200
+  √  Response has transaction data
+
+└ Update Transaction
+  PUT http://localhost:8000/api/transactions/17 [200 OK, 659B, 68ms]
+  √  Status code is 200
+  1. Transaction was updated
+
+└ Get Transaction Not Found
+  GET http://localhost:8000/api/transactions/99999 [404 Not Found, 166B, 72ms]
+  √  Status code is 404
+
+□ Budgets
+└ Create Budget
+  POST http://localhost:8000/api/budgets [201 Created, 344B, 55ms]
+  √  Status code is 201
+  √  Response has budget data
+
+└ List Budgets
+  GET http://localhost:8000/api/budgets [200 OK, 341B, 58ms]
+  √  Status code is 200
+  √  Response is array
+
+└ Get Budget by ID
+  GET http://localhost:8000/api/budgets/2 [200 OK, 339B, 56ms]
+  √  Status code is 200
+  √  Response has budget data
+
+└ Get Budget Status
+  GET http://localhost:8000/api/budgets/2/status [200 OK, 273B, 50ms]
+  √  Status code is 200
+  √  Response has status data
+
+└ Update Budget
+  PUT http://localhost:8000/api/budgets/2 [200 OK, 338B, 40ms]
+  √  Status code is 200
+  2. Budget was updated
+
+□ Goals
+└ Create Goal
+  POST http://localhost:8000/api/goals [201 Created, 455B, 42ms]
+  √  Status code is 201
+  √  Response has goal data
+
+└ List Goals
+  GET http://localhost:8000/api/goals [200 OK, 452B, 46ms]
+  √  Status code is 200
+  √  Response is array
+
+└ Get Goal by ID
+  GET http://localhost:8000/api/goals/7 [200 OK, 450B, 31ms]
+  √  Status code is 200
+  √  Response has goal data
+
+└ Add Progress to Goal
+  POST http://localhost:8000/api/goals/7/progress [200 OK, 452B, 99ms]
+  √  Status code is 200
+  √  Progress was added
+
+└ Get Goals Summary
+  GET http://localhost:8000/api/goals/summary/progress [200 OK, 208B, 71ms]
+  √  Status code is 200
+  √  Response has summary data
+
+└ Update Goal
+  PUT http://localhost:8000/api/goals/7 [200 OK, 474B, 100ms]
+  √  Status code is 200
+  √  Goal was updated
+
+└ Complete Goal
+  POST http://localhost:8000/api/goals/7/complete [200 OK, 474B, 62ms]
+  √  Status code is 200
+  √  Goal was completed
+
+□ Recurring Transactions
+└ Create Recurring Transaction
+  POST http://localhost:8000/api/recurring-transactions [201 Created, 476B, 43ms]
+  √  Status code is 201
+  √  Response has recurring transaction data
+
+└ List Recurring Transactions
+  GET http://localhost:8000/api/recurring-transactions [200 OK, 473B, 43ms]
+  √  Status code is 200
+  √  Response is array
+
+└ Get Recurring Transaction by ID
+  GET http://localhost:8000/api/recurring-transactions/2 [200 OK, 471B, 52ms]
+  √  Status code is 200
+  √  Response has data
+
+└ Update Recurring Transaction
+  PUT http://localhost:8000/api/recurring-transactions/2 [200 OK, 478B, 74ms]
+  √  Status code is 200
+  3. Transaction was updated
+
+□ Reports
+└ Get Dashboard
+  GET http://localhost:8000/api/reports/dashboard [200 OK, 253B, 43ms]
+  √  Status code is 200
+  √  Response has dashboard data
+
+└ Get Financial Summary
+  GET http://localhost:8000/api/reports/summary [200 OK, 485B, 68ms]
+  √  Status code is 200
+  √  Response has summary data
+
+└ Get Financial Summary with Date Range
+  GET http://localhost:8000/api/reports/summary?start_date=2026-01-01&end_date=2026-01-31 [200 OK, 485B, 172ms]
+  √  Status code is 200
+  √  Response has period matching request
+
+└ Get Category Breakdown (Expense)
+  GET http://localhost:8000/api/reports/categories?type=EXPENSE [200 OK, 216B, 28ms]
+  √  Status code is 200
+  √  Response is array
+
+└ Get Monthly Trends
+  GET http://localhost:8000/api/reports/trends?months=6 [200 OK, 766B, 52ms]
+  √  Status code is 200
+  √  Response has trend data
+
+└ Get Spending Patterns
+  GET http://localhost:8000/api/reports/patterns [200 OK, 241B, 44ms]
+  √  Status code is 200
+  √  Response has pattern data
+
+□ Cleanup
+└ Delete Recurring Transaction
+  DELETE http://localhost:8000/api/recurring-transactions/2 [204 No Content, 113B, 70ms]
+  √  Status code is 204
+
+└ Delete Goal
+  DELETE http://localhost:8000/api/goals/7 [204 No Content, 113B, 40ms]
+  √  Status code is 204
+
+└ Delete Budget
+  DELETE http://localhost:8000/api/budgets/2 [204 No Content, 113B, 43ms]
+  √  Status code is 204
+
+└ Delete Transaction
+  DELETE http://localhost:8000/api/transactions/17 [204 No Content, 113B, 37ms]
+  √  Status code is 204
+
+└ Logout
+  POST http://localhost:8000/api/auth/logout [200 OK, 236B, 25ms]
+  √  Status code is 200
+  √  Response has logout message
+
+┌─────────────────────────┬─────────────────────┬────────────────────┐
+│                         │            executed │             failed │
+├─────────────────────────┼─────────────────────┼────────────────────┤
+│              iterations │                   1 │                  0 │
+├─────────────────────────┼─────────────────────┼────────────────────┤
+│                requests │                  46 │                  0 │
+├─────────────────────────┼─────────────────────┼────────────────────┤
+│            test-scripts │                  46 │                  0 │
+├─────────────────────────┼─────────────────────┼────────────────────┤
+│      prerequest-scripts │                   1 │                  0 │
+├─────────────────────────┼─────────────────────┼────────────────────┤
+│              assertions │                  85 │                  3 │
+├─────────────────────────┴─────────────────────┴────────────────────┤
+│ total run duration: 8.7s                                           │
+├────────────────────────────────────────────────────────────────────┤
+│ total data received: 12.94kB (approx)                              │
+├────────────────────────────────────────────────────────────────────┤
+│ average response time: 101ms [min: 15ms, max: 1407ms, s.d.: 212ms] │
+└────────────────────────────────────────────────────────────────────┘
+
+[31m  # [39m[31m failure        [39m[31m detail                                                         [39m
+[90m    [39m[90m                [39m[90m                                                                [39m
+ 1.  AssertionError  Transaction was updated                                        
+                     expected '200.75' to deeply equal 200.75                       
+                     at assertion:1 in test-script                                  
+                     inside "Transactions / Update Transaction"                     
+[90m    [39m[90m                [39m[90m                                                                [39m
+ 2.  AssertionError  Budget was updated                                             
+                     expected '1500.0' to deeply equal 1500                         
+                     at assertion:1 in test-script                                  
+                     inside "Budgets / Update Budget"                               
+[90m    [39m[90m                [39m[90m                                                                [39m
+ 3.  AssertionError  Transaction was updated                                        
+                     expected '1300.0' to deeply equal 1300                         
+                     at assertion:1 in test-script                                  
+                     inside "Recurring Transactions / Update Recurring Transaction" 

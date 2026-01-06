@@ -10,9 +10,9 @@ from enum import Enum as PyEnum
 
 class BudgetPeriod(PyEnum):
     """Períodos de orçamento"""
-    MONTHLY = "monthly"
-    QUARTERLY = "quarterly"
-    YEARLY = "yearly"
+    MONTHLY = "MONTHLY"
+    QUARTERLY = "QUARTERLY"
+    YEARLY = "YEARLY"
 
 
 class Budget(Base, BaseModel):

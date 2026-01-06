@@ -4,7 +4,7 @@ Schemas de Metas Financeiras para validação de requisições/respostas
 from datetime import datetime, date as DateType
 from decimal import Decimal
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 
 # Schemas de Requisição
@@ -43,16 +43,16 @@ class GoalResponse(BaseModel):
     category: Optional[str]
     priority: str
     is_completed: bool
-    progress_percentage: Optional[float] = None
     created_at: datetime
     updated_at: datetime
 
     class Config:
         from_attributes = True
 
+    @computed_field
     @property
     def progress_percentage(self) -> float:
         """Calcula porcentagem de progresso"""
         if self.target_amount == 0:
-            return 0
-        return min(float(self.current_amount / self.target_amount * 100), 100)
+            return 0.0
+        return min(float(self.current_amount / self.target_amount * 100), 100.0)

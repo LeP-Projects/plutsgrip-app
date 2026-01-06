@@ -11,12 +11,12 @@ from enum import Enum as PyEnum
 
 class RecurrenceFrequency(PyEnum):
     """Frequências de recorrência"""
-    DAILY = "daily"
-    WEEKLY = "weekly"
-    BIWEEKLY = "biweekly"
-    MONTHLY = "monthly"
-    QUARTERLY = "quarterly"
-    YEARLY = "yearly"
+    DAILY = "DAILY"
+    WEEKLY = "WEEKLY"
+    BIWEEKLY = "BIWEEKLY"
+    MONTHLY = "MONTHLY"
+    QUARTERLY = "QUARTERLY"
+    YEARLY = "YEARLY"
 
 
 class RecurringTransaction(Base, BaseModel):
