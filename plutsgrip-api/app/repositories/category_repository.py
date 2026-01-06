@@ -18,13 +18,13 @@ class CategoryRepository(BaseRepository[Category]):
     async def get_by_id(self, id: int) -> Optional[Category]:
         """
         Get a single category by ID with relationships loaded
-
-        Overrides base class to ensure relationships are loaded with selectinload
-        to avoid greenlet issues in async context
         """
         query = select(Category).options(
             selectinload(Category.user)
-        ).where(Category.id == id)
+        ).where(
+            Category.id == id,
+            Category.deleted_at.is_(None)
+        )
 
         result = await self.db.execute(query)
         return result.scalars().first()

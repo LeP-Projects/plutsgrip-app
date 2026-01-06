@@ -141,6 +141,21 @@ CREATE INDEX IF NOT EXISTS ix_recurring_id ON recurring_transactions(id);
 CREATE INDEX IF NOT EXISTS ix_recurring_created_at ON recurring_transactions(created_at);
 CREATE INDEX IF NOT EXISTS ix_recurring_user_id ON recurring_transactions(user_id);
 
+-- Create rate_limit_whitelists table
+CREATE TABLE IF NOT EXISTS rate_limit_whitelists (
+    id SERIAL PRIMARY KEY,
+    ip_address VARCHAR(45) NOT NULL UNIQUE,
+    description TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    expires_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS ix_rate_limit_whitelists_ip_address ON rate_limit_whitelists(ip_address);
+CREATE INDEX IF NOT EXISTS ix_rate_limit_whitelists_is_active ON rate_limit_whitelists(is_active);
+
 -- Create alembic_version table for migration tracking
 CREATE TABLE IF NOT EXISTS alembic_version (
     version_num VARCHAR(32) NOT NULL PRIMARY KEY
