@@ -61,6 +61,7 @@ services:
       - ./plutsgrip-api/alembic:/app/alembic
       - ./plutsgrip-api/alembic.ini:/app/alembic.ini
       - ./plutsgrip-api/tests:/app/tests
+      - ./plutsgrip-api/seeds:/app/seeds
     depends_on:
       postgres:
         condition: service_healthy
