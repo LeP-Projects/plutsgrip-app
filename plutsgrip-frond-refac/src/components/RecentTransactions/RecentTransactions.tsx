@@ -120,6 +120,7 @@ interface RecentTransactionsProps {
   onViewAllClick?: () => void
   typeFilter?: "income" | "expense" | "all"
   language: string
+  refreshKey?: number
 }
 
 export function RecentTransactions({
@@ -127,11 +128,12 @@ export function RecentTransactions({
   onViewAllClick,
   typeFilter = "all",
   language,
+  refreshKey = 0,
 }: RecentTransactionsProps) {
   // Busca transações da API
   const fetchTransactions = useCallback(
     () => apiService.listTransactions(1, showAll ? 100 : 5, typeFilter !== "all" ? typeFilter : undefined),
-    [showAll, typeFilter]
+    [showAll, typeFilter, refreshKey]
   )
 
   const { data: transactionsData, loading: transactionsLoading } = useApi(
@@ -285,9 +287,8 @@ export function RecentTransactions({
               <div className="flex items-center justify-between sm:justify-end gap-3">
                 <div className="text-left sm:text-right">
                   <p
-                    className={`font-semibold text-base sm:text-lg ${
-                      transaction.type === "expense" ? "text-destructive" : "text-green-600"
-                    }`}
+                    className={`font-semibold text-base sm:text-lg ${transaction.type === "expense" ? "text-destructive" : "text-green-600"
+                      }`}
                   >
                     {transaction.type === "expense" ? "-" : "+"}${transaction.amount.toFixed(2)}
                   </p>

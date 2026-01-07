@@ -65,9 +65,10 @@ const translations = {
 interface ExpenseFormProps {
   language: string
   defaultType?: "income" | "expense"
+  onTransactionCreated?: () => void
 }
 
-export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
+export function ExpenseForm({ language, defaultType, onTransactionCreated }: ExpenseFormProps) {
   const [date, setDate] = useState<Date>()
   const [calendarOpen, setCalendarOpen] = useState(false)
   const { currency } = useCurrency()
@@ -155,6 +156,9 @@ export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
 
       // Show success message (você pode adicionar um toast aqui)
       console.log("Transação criada com sucesso!")
+
+      // Notify parent component to refresh transactions list
+      onTransactionCreated?.()
     } catch (error) {
       console.error("Erro ao criar transação:", error)
       // Show error message (você pode adicionar um toast aqui)

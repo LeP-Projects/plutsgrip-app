@@ -22,20 +22,27 @@ router = APIRouter(prefix="/categories", tags=["Categories"])
 @router.get("", response_model=CategoryListResponse)
 async def list_categories(
     type: Optional[TransactionType] = Query(None, description="Filter by type (income/expense)"),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    List all categories, optionally filtered by type
+    List all categories for the current user, optionally filtered by type
 
-    NOTE: This endpoint is public (no authentication required)
-
-    TODO: Implement category listing
-    - Get all categories or filter by type
-    - Return categories with total count
+    Requires authentication - returns only the user's personal categories
     """
-    category_service = CategoryService(db)
+    from sqlalchemy import select, and_
+    from app.models.category import Category
 
-    categories = await category_service.get_all_categories(transaction_type=type)
+    # Build query for user's categories only
+    conditions = [Category.user_id == current_user.id, Category.deleted_at.is_(None)]
+    
+    if type:
+        conditions.append(Category.type == type)
+    
+    result = await db.execute(
+        select(Category).where(and_(*conditions)).order_by(Category.type)
+    )
+    categories = result.scalars().all()
 
     return CategoryListResponse(
         categories=[CategoryResponse.model_validate(c) for c in categories],

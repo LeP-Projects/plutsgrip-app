@@ -123,11 +123,16 @@ export function Dashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const isMobile = useIsMobile()
   const { formatCurrency } = useCurrency()
+  const [transactionRefreshKey, setTransactionRefreshKey] = useState(0)
   const [dashboardFilters, setDashboardFilters] = useState({
     timeRange: "thisMonth",
     category: "all",
     type: "all",
   })
+
+  const handleTransactionCreated = () => {
+    setTransactionRefreshKey((prev) => prev + 1)
+  }
 
   // Busca dados do dashboard da API
   const { data: dashboardData, loading: dashboardLoading, error: dashboardError } = useApi(
@@ -481,29 +486,32 @@ export function Dashboard() {
               </TabsList>
 
               <TabsContent value="all" className="space-y-6">
-                <ExpenseForm language={language} />
+                <ExpenseForm language={language} onTransactionCreated={handleTransactionCreated} />
                 <RecentTransactions
                   showAll
                   typeFilter="all"
                   language={language}
+                  refreshKey={transactionRefreshKey}
                 />
               </TabsContent>
 
               <TabsContent value="income" className="space-y-6">
-                <ExpenseForm language={language} defaultType="income" />
+                <ExpenseForm language={language} defaultType="income" onTransactionCreated={handleTransactionCreated} />
                 <RecentTransactions
                   showAll
                   typeFilter="income"
                   language={language}
+                  refreshKey={transactionRefreshKey}
                 />
               </TabsContent>
 
               <TabsContent value="expense" className="space-y-6">
-                <ExpenseForm language={language} defaultType="expense" />
+                <ExpenseForm language={language} defaultType="expense" onTransactionCreated={handleTransactionCreated} />
                 <RecentTransactions
                   showAll
                   typeFilter="expense"
                   language={language}
+                  refreshKey={transactionRefreshKey}
                 />
               </TabsContent>
             </Tabs>
