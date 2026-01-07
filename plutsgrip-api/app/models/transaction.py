@@ -59,7 +59,7 @@ class Transaction(Base, BaseModel):
 
     # Relationships
     user = relationship("User", back_populates="transactions")
-    category = relationship("Category", back_populates="transactions")
+    category = relationship("Category", back_populates="transactions", lazy="selectin")
 
     def __repr__(self):
         return f"<Transaction(id={self.id}, type={self.type}, amount={self.amount}, description={self.description})>"

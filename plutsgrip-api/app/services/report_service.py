@@ -358,14 +358,20 @@ class ReportService:
             )
         )
 
+        rows = result.all()
+
+        # Calculate total amount for percentage calculation
+        grand_total = sum(float(row[2]) for row in rows)
+
         return [
             {
                 "category_id": row[0],
                 "category_name": row[1],
                 "total": float(row[2]),
-                "count": row[3]
+                "count": row[3],
+                "percentage": round((float(row[2]) / grand_total * 100) if grand_total > 0 else 0, 2)
             }
-            for row in result.all()
+            for row in rows
         ]
 
     async def _get_daily_totals(
@@ -385,20 +391,45 @@ class ReportService:
         Returns:
             Dicionário com totais por dia
         """
-        result = await self.db.execute(
+        # Get income totals by day
+        income_result = await self.db.execute(
             select(
                 Transaction.date,
                 func.sum(Transaction.amount).label("total")
             ).where(
                 and_(
                     Transaction.user_id == user_id,
+                    Transaction.type == TransactionType.INCOME,
                     Transaction.date >= start_date,
                     Transaction.date <= end_date
                 )
-            ).group_by(Transaction.date).order_by(Transaction.date)
+            ).group_by(Transaction.date)
         )
+        income_by_date = {row[0].isoformat(): float(row[1]) for row in income_result.all()}
+
+        # Get expense totals by day
+        expense_result = await self.db.execute(
+            select(
+                Transaction.date,
+                func.sum(Transaction.amount).label("total")
+            ).where(
+                and_(
+                    Transaction.user_id == user_id,
+                    Transaction.type == TransactionType.EXPENSE,
+                    Transaction.date >= start_date,
+                    Transaction.date <= end_date
+                )
+            ).group_by(Transaction.date)
+        )
+        expense_by_date = {row[0].isoformat(): float(row[1]) for row in expense_result.all()}
+
+        # Combine income and expense into daily totals
+        all_dates = set(income_by_date.keys()) | set(expense_by_date.keys())
 
         return {
-            row[0].isoformat(): float(row[1])
-            for row in result.all()
+            date_str: {
+                "income": Decimal(str(income_by_date.get(date_str, 0.0))),
+                "expense": Decimal(str(expense_by_date.get(date_str, 0.0)))
+            }
+            for date_str in sorted(all_dates)
         }

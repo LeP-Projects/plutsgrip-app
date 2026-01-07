@@ -10,8 +10,8 @@ import enum
 
 class TransactionType(str, enum.Enum):
     """Transaction type enumeration"""
-    INCOME = "income"
-    EXPENSE = "expense"
+    INCOME = "INCOME"
+    EXPENSE = "EXPENSE"
 
 
 class Category(Base, BaseModel):
