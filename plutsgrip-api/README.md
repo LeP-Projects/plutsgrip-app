@@ -1,209 +1,314 @@
-# PlutusGrip Finance Tracker - Backend API
+# PlutusGrip Backend API
+
+<div align="center">
 
 ![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)
-![SQLite/PostgreSQL](https://img.shields.io/badge/Database-SQLite%2FPostgreSQL-blue.svg)
-![Tests](https://img.shields.io/badge/Tests-25%2B%20Passing-success.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue.svg)
+![Tests](https://img.shields.io/badge/Tests-30%2B-success.svg)
 
-API REST assíncrona para gerenciamento de finanças pessoais construída com FastAPI, SQLAlchemy 2.0 e arquitetura em camadas.
+**API REST Assíncrona Moderna para Gestão Financeira Pessoal**
 
-## 📌 Veja o README Principal
+[Documentação Principal](../README.md) • [Guia do Backend](../docs/BACKEND.md) • [API Docs](http://68.183.98.186/api/docs)
 
-Este é o README do backend. Para guia completo de setup e instruções, consulte:
+</div>
 
-**[../README.md](../README.md)** - Guia principal com quick start
+---
 
-## Visão Geral
+## 📋 Visão Geral
 
-PlutusGrip API é um backend completo para rastreamento e análise de finanças pessoais, oferecendo:
+Este é o **backend da API** para o PlutusGrip, construído com FastAPI e padrões assíncronos modernos em Python. Para informações completas do projeto, veja o [README principal](../README.md).
 
-- ✅ **Autenticação JWT** - Com refresh token automático
-- ✅ **35+ Endpoints RESTful** - Organizado em 7 rotas
-- ✅ **Database Assíncrono** - SQLAlchemy 2.0 + asyncio
-- ✅ **Validação Robusta** - Pydantic v2 em todos endpoints
-- ✅ **Rate Limiting** - Proteção contra abuso
-- ✅ **Relatórios** - Dashboard e tendências
-- ✅ **Documentação Automática** - Swagger/OpenAPI
+**Funcionalidades Principais:**
+- 🚀 **35+ Endpoints REST** - Organizados em 8 módulos de rotas
+- 🔐 **Autenticação JWT** - Tokens de acesso e refresh com renovação automática
+- ⚡ **Banco de Dados Assíncrono** - SQLAlchemy 2.0 com asyncpg
+- ✅ **Type Safety** - Pydantic v2 para todas as requisições/respostas
+- 🛡️ **Rate Limiting** - Suporte a whitelist de IP
+- 📊 **Analytics** - Painel e relatórios de tendências
+- 🧪 **Bem Testado** - 30+ testes com cobertura >90%
 
-## 📚 Documentação
-
-### 📖 Começar Aqui
-- **[../README.md](../README.md)** - Guia principal com quick start
-- **[../docs/00-INDEX.md](../docs/00-INDEX.md)** - Índice centralizado de toda documentação
-- **[../SETUP.md](../SETUP.md)** - Instruções de setup para dev e produção
-- **[../CONTRIBUTING.md](../CONTRIBUTING.md)** - Guia de contribuição
-
-### 🔧 Documentação de Desenvolvimento
-- **[../docs/02-ARCHITECTURE.md](../docs/02-ARCHITECTURE.md)** - Arquitetura do sistema completa
-- **[../docs/03-API-ENDPOINTS.md](../docs/03-API-ENDPOINTS.md)** - Referência de todos 35+ endpoints
-- **[../docs/04-DATABASE.md](../docs/04-DATABASE.md)** - Schema e migrations do banco de dados
-- **[../docs/05-AUTHENTICATION.md](../docs/05-AUTHENTICATION.md)** - Sistema de autenticação detalhado
-- **[../docs/07-DEVELOPMENT.md](../docs/07-DEVELOPMENT.md)** - Workflow de desenvolvimento
-
-### 🧪 Testes & Deploy
-- **[../docs/08-TESTING.md](../docs/08-TESTING.md)** - Guia de testes (unit, integration, E2E)
-- **[../docs/10-DEPLOYMENT.md](../docs/10-DEPLOYMENT.md)** - Instruções de deploy para produção
-- **[../docs/09-TROUBLESHOOTING.md](../docs/09-TROUBLESHOOTING.md)** - Soluções de problemas comuns
-- **[../docs/FAQ.md](../docs/FAQ.md)** - Perguntas frequentes
+---
 
 ## 🚀 Início Rápido
 
-### Pré-requisitos
-
-- Python 3.11+
-- pip (gerenciador de pacotes Python)
-
-### Instalação
+### Desenvolvimento com Docker (Recomendado)
 
 ```bash
-# 1. Criar ambiente virtual
+# Da raiz do projeto
+make up
+# Acesse a API em http://localhost:8000
+# API docs em http://localhost:8000/docs
+```
+
+### Desenvolvimento Local
+
+```bash
+# 1. Navegue até o diretório do backend
+cd plutsgrip-api
+
+# 2. Crie ambiente virtual
 python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# 2. Ativar ambiente virtual
-# Linux/Mac:
-source venv/bin/activate
-# Windows:
-venv\Scripts\activate
-
-# 3. Instalar dependências
+# 3. Instale as dependências
 pip install -r requirements.txt
 
-# 4. Configurar variáveis de ambiente
+# 4. Configure o ambiente
 cp .env.example .env
-# Edite .env se necessário
+# Edite .env com suas configurações
 
-# 5. Iniciar servidor
+# 5. Execute as migrações
+alembic upgrade head
+
+# 6. Inicie o servidor
 python main.py
+# Ou: uvicorn main:app --reload
 ```
 
 **Servidor rodando em:** http://localhost:8000
-**Documentação Swagger:** http://localhost:8000/docs
+**Documentação da API:** http://localhost:8000/docs
+
+---
+
+## 📚 Documentação Completa
+
+Para documentação abrangente do backend, veja:
+
+### **[📖 Guia do Backend (docs/BACKEND.md)](../docs/BACKEND.md)**
+
+Este guia inclui:
+- ✅ Visão geral da arquitetura e padrões de design
+- ✅ Referência completa dos endpoints da API (35+ endpoints)
+- ✅ Schema do banco de dados e migrações
+- ✅ Detalhes do sistema de autenticação
+- ✅ Estratégias de testes
+- ✅ Deploy na DigitalOcean
+- ✅ Guia de troubleshooting
+- ✅ Fluxo de trabalho de desenvolvimento
+
+### Links Rápidos
+- **[README Principal](../README.md)** - Visão geral do projeto e início rápido
+- **[Hub de Documentação](../docs/INDEX.md)** - Toda a documentação
+- **[Guia do Frontend](../docs/FRONTEND.md)** - Documentação do frontend
+- **[Guia de Deploy](../DEPLOY_GUIDE.md)** - Deploy em produção
+
+---
 
 ## 📁 Estrutura do Projeto
 
 ```
 plutsgrip-api/
 ├── app/
-│   ├── main.py                  # FastAPI app
-│   ├── core/
-│   │   ├── config.py            # Configurações
-│   │   ├── database.py          # BD assíncrono
-│   │   ├── security.py          # JWT + auth
-│   │   └── exceptions.py        # Exceções
-│   ├── models/                  # 7 modelos SQLAlchemy
-│   ├── schemas/                 # 15+ schemas Pydantic
 │   ├── api/v1/
-│   │   ├── router.py            # Router principal
-│   │   └── endpoints/           # 35+ endpoints (7 rotas)
-│   ├── repositories/            # Camada de CRUD
-│   └── services/                # Lógica de negócio
-├── tests/
-│   ├── conftest.py              # Fixtures
-│   └── test_auth.py             # 25+ testes
-├── requirements.txt
-├── .env.example
-└── main.py
+│   │   ├── endpoints/          # 8 módulos de endpoints (35+ rotas)
+│   │   └── router.py           # Router principal da API
+│   ├── core/
+│   │   ├── config.py           # Configurações com Pydantic
+│   │   ├── database.py         # Configuração SQLAlchemy assíncrono
+│   │   ├── security.py         # JWT e hash de senhas
+│   │   └── rate_limiter.py     # Rate limiting com whitelist
+│   ├── models/                 # 8 modelos SQLAlchemy
+│   ├── schemas/                # 20+ schemas Pydantic
+│   ├── repositories/           # Camada de acesso a dados
+│   └── services/               # Lógica de negócio
+├── alembic/                    # Migrações do banco de dados
+├── tests/                      # Suite de testes (30+ testes)
+├── main.py                     # Ponto de entrada da aplicação
+└── requirements.txt            # Dependências Python
 ```
 
-Para arquitetura detalhada, veja: [../doc/BACKEND_REQUIREMENTS.md](../doc/BACKEND_REQUIREMENTS.md)
+---
 
-## 🛠️ Tecnologias
+## 🛠️ Stack Tecnológica
 
-- **FastAPI** - Framework web moderno e assíncrono
-- **SQLAlchemy 2.0+** - ORM assíncrono
-- **Pydantic v2** - Validação de dados
-- **PyJWT** - Tokens de autenticação JWT
-- **bcrypt** - Hash de senhas
-- **SlowAPI** - Rate limiting
-- **SQLite/PostgreSQL** - Banco de dados
-- **Pytest** - Testes unitários
-- **httpx** - Cliente HTTP async
+| Categoria | Tecnologia |
+|-----------|------------|
+| **Framework** | FastAPI 0.104+ |
+| **Linguagem** | Python 3.11+ |
+| **ORM** | SQLAlchemy 2.0 (async) |
+| **Validação** | Pydantic v2 |
+| **Banco de Dados** | PostgreSQL 15+ / Neon |
+| **Auth** | JWT (PyJWT) |
+| **Password** | bcrypt |
+| **Testes** | Pytest + httpx |
+| **Migrações** | Alembic |
+| **Rate Limiting** | SlowAPI |
 
-## 📡 35+ Endpoints Implementados
+---
 
-Organizados em 7 rotas:
+## 📡 Endpoints da API
 
-- **Autenticação (6)** - Register, Login, Logout, Refresh, Get Me
-- **Transações (7)** - CRUD + Duplicar + Exportar CSV
-- **Categorias (4)** - Listar e gerenciar
-- **Relatórios (5)** - Dashboard, Tendências, Padrões
-- **Orçamentos (5)** - Gerenciar limites
-- **Metas (5)** - Rastrear objetivos
-- **Transações Recorrentes (3)** - Automatizar repetidas
+**8 Módulos Principais de Rotas:**
 
-**Para lista completa, veja:**
-- [../doc/GUIA_API_ENDPOINTS.md](../doc/GUIA_API_ENDPOINTS.md) - Todos 35+ endpoints documentados
-- [../doc/BACKEND_REQUIREMENTS.md](../doc/BACKEND_REQUIREMENTS.md) - Especificações técnicas
+| Módulo | Endpoints | Propósito |
+|--------|-----------|-----------|
+| **Auth** | 5 | Registro, login, logout, refresh, obter usuário |
+| **Transactions** | 5 | Operações CRUD para transações |
+| **Categories** | 5 | Gerenciar categorias de despesas/receitas |
+| **Budgets** | 5 | Criação e rastreamento de orçamentos |
+| **Goals** | 5 | Gerenciamento de metas financeiras |
+| **Recurring** | 5 | Transações recorrentes automatizadas |
+| **Reports** | 6 | Painel, tendências, analytics |
+| **Whitelist** | 3 | Gerenciamento de whitelist de rate limit |
+
+**Total:** 35+ endpoints
+
+Para referência completa da API com exemplos de requisição/resposta, veja [docs/BACKEND.md](../docs/BACKEND.md).
+
+---
 
 ## 🧪 Testes
 
 ```bash
-# Todos os testes
+# Executar todos os testes
 pytest
 
-# Com coverage
+# Com cobertura
 pytest --cov
 
-# Verbose
+# Saída verbose
 pytest -v
 
-# Suite específica
+# Arquivo de teste específico
 pytest tests/test_auth.py
+
+# Com relatório de cobertura HTML
+pytest --cov --cov-report=html
 ```
 
-Para mais detalhes, veja: [../doc/TESTES.md](../doc/TESTES.md)
-
-## 🔐 Variáveis de Ambiente
-
-Ver `.env.example` para configuração completa:
-
-```env
-# DATABASE
-DATABASE_URL=sqlite+aiosqlite:///./test.db
-
-# JWT
-SECRET_KEY=your-secret-key-change-this
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=15
-REFRESH_TOKEN_EXPIRE_DAYS=7
-
-# CORS
-ALLOWED_ORIGINS=["http://localhost:3000","http://localhost:5173"]
-
-# ENVIRONMENT
-ENVIRONMENT=development
-```
-
-## 📖 Mais Documentação
-
-Toda a documentação está centralizada no diretório `../docs/`:
-
-- **[../docs/00-INDEX.md](../docs/00-INDEX.md)** - Navegação central para toda documentação
-- **[../docs/01-OVERVIEW.md](../docs/01-OVERVIEW.md)** - Visão geral do projeto
-- **[../docs/02-ARCHITECTURE.md](../docs/02-ARCHITECTURE.md)** - Arquitetura completa do sistema
-- **[../docs/03-API-ENDPOINTS.md](../docs/03-API-ENDPOINTS.md)** - Todos os 35+ endpoints
-- **[../docs/04-DATABASE.md](../docs/04-DATABASE.md)** - Schema e migrações
-- **[../docs/05-AUTHENTICATION.md](../docs/05-AUTHENTICATION.md)** - Sistema de autenticação
-- **[../docs/06-DOCKER-SETUP.md](../docs/06-DOCKER-SETUP.md)** - Configuração Docker
-- **[../docs/07-DEVELOPMENT.md](../docs/07-DEVELOPMENT.md)** - Guia de desenvolvimento
-- **[../docs/08-TESTING.md](../docs/08-TESTING.md)** - Estratégias de testes
-- **[../docs/09-TROUBLESHOOTING.md](../docs/09-TROUBLESHOOTING.md)** - Resolução de problemas
-- **[../docs/10-DEPLOYMENT.md](../docs/10-DEPLOYMENT.md)** - Deployment para produção
-- **[../docs/FAQ.md](../docs/FAQ.md)** - Perguntas frequentes
-- **[../docs/GLOSSARY.md](../docs/GLOSSARY.md)** - Glossário de termos técnicos
-
-## 📋 Status
-
-- ✅ 35+ endpoints implementados
-- ✅ 25+ testes (100% passando)
-- ✅ 96% cobertura de código
-- ✅ Documentação completa
-- ✅ Pronto para produção
-
-## 📄 Licença
-
-MIT License
+**Cobertura de Testes:** >90%
 
 ---
 
-Desenvolvido com ❤️ usando FastAPI e Python
+## 🌐 Produção
+
+**API ao Vivo:** http://68.183.98.186/api
+
+**Deploy Atual:**
+- **Servidor:** DigitalOcean Droplet (2GB RAM)
+- **Banco de Dados:** Neon PostgreSQL (sa-east-1)
+- **Serviço:** Systemd
+- **Proxy:** Nginx
+- **SSL:** Conexão com banco usando sslmode=require
+
+Para instruções de deploy, veja [DEPLOY_GUIDE.md](../DEPLOY_GUIDE.md).
+
+---
+
+## ⚙️ Variáveis de Ambiente
+
+```env
+# Aplicação
+APP_NAME=PlutusGrip Finance Tracker API
+APP_VERSION=1.0.0
+APP_ENV=production
+DEBUG=False
+
+# Servidor
+HOST=0.0.0.0
+PORT=8000
+
+# Banco de Dados
+DATABASE_URL=postgresql://user:pass@host:5432/db?ssl=require
+DATABASE_ECHO=False
+
+# JWT
+SECRET_KEY=sua-chave-secreta-aqui
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_TOKEN_EXPIRE_DAYS=7
+
+# CORS
+ALLOWED_ORIGINS=http://localhost:5173,http://68.183.98.186
+ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
+ALLOWED_HEADERS=Content-Type,Authorization,Accept
+
+# Rate Limiting
+RATE_LIMIT_ENABLED=True
+
+# Logging
+LOG_LEVEL=INFO
+LOG_FILE=/var/log/plutusgrip/app.log
+```
+
+Veja `.env.example` para configuração completa.
+
+---
+
+## 🔧 Comandos Comuns
+
+```bash
+# Migrações do banco de dados
+alembic revision --autogenerate -m "descrição"  # Criar migração
+alembic upgrade head                            # Aplicar migrações
+alembic downgrade -1                            # Reverter uma migração
+alembic current                                 # Mostrar versão atual
+alembic history                                 # Mostrar histórico de migrações
+
+# Desenvolvimento
+uvicorn main:app --reload                       # Iniciar com auto-reload
+python main.py                                  # Iniciar normalmente
+
+# Testes
+pytest tests/                                   # Executar todos os testes
+pytest tests/test_auth.py -v                    # Executar teste específico
+pytest --cov=app tests/                        # Com cobertura
+
+# Qualidade de código
+black app/                                      # Formatar código
+isort app/                                      # Ordenar imports
+flake8 app/                                     # Lint do código
+mypy app/                                       # Verificação de tipos
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Problemas Comuns
+
+**Porta 8000 já em uso:**
+```bash
+lsof -i :8000
+kill -9 <PID>
+```
+
+**Falha na conexão com banco de dados:**
+```bash
+# Verificar variáveis de ambiente
+cat .env | grep DATABASE_URL
+
+# Testar conexão
+python -c "from app.core.database import engine; print('OK')"
+```
+
+**Migrações não aplicando:**
+```bash
+alembic stamp head  # Marcar estado atual
+alembic upgrade head
+```
+
+Para mais dicas de troubleshooting, veja [docs/BACKEND.md](../docs/BACKEND.md#troubleshooting).
+
+---
+
+## 📞 Suporte
+
+- **Issues:** [GitHub Issues](https://github.com/LeP-Projects/plutsgrip-app/issues)
+- **Documentação:** [docs/INDEX.md](../docs/INDEX.md)
+- **API Docs:** http://68.183.98.186/api/docs
+
+---
+
+## 📄 Licença
+
+Licença MIT - veja o arquivo [LICENSE](../LICENSE) para detalhes.
+
+---
+
+<div align="center">
+
+**[⬆ Voltar ao README Principal](../README.md)**
+
+</div>
