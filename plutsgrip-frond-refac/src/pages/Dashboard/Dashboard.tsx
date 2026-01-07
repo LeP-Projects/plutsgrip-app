@@ -468,6 +468,7 @@ export function Dashboard() {
                 <RecentTransactions
                   onViewAllClick={handleViewAllTransactions}
                   language={language}
+                  refreshKey={transactionRefreshKey}
                 />
               </>
             )}

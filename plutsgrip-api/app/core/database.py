@@ -91,56 +91,56 @@ async def seed_default_categories() -> None:
             default_categories = [
                 # Expense categories
                 Category(
-                    name="Food & Dining",
+                    name="Alimentação",
                     type=TransactionType.EXPENSE,
                     color="#FF6B6B",
                     icon="utensils",
                     is_default=True
                 ),
                 Category(
-                    name="Transportation",
+                    name="Transporte",
                     type=TransactionType.EXPENSE,
                     color="#4ECDC4",
                     icon="car",
                     is_default=True
                 ),
                 Category(
-                    name="Shopping",
+                    name="Compras",
                     type=TransactionType.EXPENSE,
                     color="#FFE66D",
                     icon="shopping-bag",
                     is_default=True
                 ),
                 Category(
-                    name="Entertainment",
+                    name="Entretenimento",
                     type=TransactionType.EXPENSE,
                     color="#A8D8EA",
                     icon="popcorn",
                     is_default=True
                 ),
                 Category(
-                    name="Utilities",
+                    name="Contas",
                     type=TransactionType.EXPENSE,
                     color="#95E1D3",
                     icon="lightbulb",
                     is_default=True
                 ),
                 Category(
-                    name="Healthcare",
+                    name="Saúde",
                     type=TransactionType.EXPENSE,
                     color="#F38181",
                     icon="heart",
                     is_default=True
                 ),
                 Category(
-                    name="Education",
+                    name="Educação",
                     type=TransactionType.EXPENSE,
                     color="#AA96DA",
                     icon="book",
                     is_default=True
                 ),
                 Category(
-                    name="Travel",
+                    name="Viagem",
                     type=TransactionType.EXPENSE,
                     color="#FCBAD3",
                     icon="plane",
@@ -148,7 +148,7 @@ async def seed_default_categories() -> None:
                 ),
                 # Income categories
                 Category(
-                    name="Salary",
+                    name="Salário",
                     type=TransactionType.INCOME,
                     color="#5FD068",
                     icon="briefcase",
@@ -162,14 +162,14 @@ async def seed_default_categories() -> None:
                     is_default=True
                 ),
                 Category(
-                    name="Investments",
+                    name="Investimentos",
                     type=TransactionType.INCOME,
                     color="#F0C040",
                     icon="chart-line",
                     is_default=True
                 ),
                 Category(
-                    name="Other Income",
+                    name="Outras Rendas",
                     type=TransactionType.INCOME,
                     color="#9FB469",
                     icon="gift",
