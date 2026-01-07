@@ -2,7 +2,7 @@
 User schemas for request/response validation
 """
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, ConfigDict, Field, field_validator
 import re
 
 
@@ -59,8 +59,7 @@ class UserResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True  # Allows loading from ORM models
+    model_config = ConfigDict(from_attributes=True)  # Allows loading from ORM models
 
 
 class LoginResponse(BaseModel):

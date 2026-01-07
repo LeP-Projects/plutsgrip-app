@@ -969,7 +969,7 @@ function Component() {
 **Funcionalidades:**
 - Conversão USD ↔ BRL
 - Taxas de câmbio em tempo real
-- Formatação de moeda (pt-BR / en-US)
+- Formatação de moeda (pt-BR / pt-BR)
 - Persistência em localStorage
 
 **Testes:** ✅ 17 testes passando

@@ -9,9 +9,8 @@ GET /api/auth/me - Get current user
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from app.core.database import get_db
+from app.core.rate_limiter import limiter
 from app.api.dependencies import get_current_user
 from app.core.security import blacklist_token
 from app.models.user import User
@@ -26,7 +25,6 @@ from app.schemas.user import (
 from app.services.auth_service import AuthService
 
 security = HTTPBearer()
-limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 

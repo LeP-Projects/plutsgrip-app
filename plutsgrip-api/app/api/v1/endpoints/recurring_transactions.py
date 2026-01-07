@@ -108,7 +108,7 @@ async def update_recurring_transaction(
 ):
     """Atualiza uma transação recorrente"""
     service = RecurringTransactionService(db)
-    update_data = trans_data.dict(exclude_unset=True)
+    update_data = trans_data.model_dump(exclude_unset=True)
     transaction = await service.update_recurring_transaction(
         recurring_id, current_user.id, **update_data
     )

@@ -52,19 +52,19 @@ export function ExpenseChart({ language, filters }: ExpenseChartProps) {
   )
 
   const filteredData = useMemo(() => {
-    const transactions = transactionsData?.data || []
+    const transactions = transactionsData?.transactions || []
     let filtered = transactions.filter((transaction) => transaction.type === "expense")
 
     // Apply category filter
     if (filters?.category && filters.category !== "all") {
-      filtered = filtered.filter((transaction) => transaction.category === filters.category)
+      filtered = filtered.filter((transaction) => transaction.category?.name === filters.category)
     }
 
     // Group by month and sum expenses
     const monthlyData: { [key: string]: any } = {}
     filtered.forEach((transaction) => {
       const date = new Date(transaction.date)
-      const monthKey = date.toLocaleString("en-US", { month: "short" })
+      const monthKey = date.toLocaleString("pt-BR", { month: "short" })
 
       if (!monthlyData[monthKey]) {
         monthlyData[monthKey] = { month: monthKey, expenses: 0 }

@@ -9,7 +9,8 @@ from app.api.v1.endpoints import (
     reports,
     budgets,
     goals,
-    recurring_transactions
+    recurring_transactions,
+    whitelist
 )
 
 # Create main API v1 router
@@ -23,3 +24,4 @@ api_router.include_router(reports.router)
 api_router.include_router(budgets.router)
 api_router.include_router(goals.router)
 api_router.include_router(recurring_transactions.router)
+api_router.include_router(whitelist.router)

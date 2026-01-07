@@ -3,8 +3,8 @@ Schemas de Transações Recorrentes para validação de requisições/respostas
 """
 from datetime import datetime, date as DateType
 from decimal import Decimal
-from typing import Optional
-from pydantic import BaseModel, Field
+from typing import Optional, Any
+from pydantic import BaseModel, Field, ConfigDict, field_serializer
 from app.models.category import TransactionType
 
 
@@ -44,9 +44,9 @@ class RecurringTransactionResponse(BaseModel):
     description: str
     amount: Decimal
     currency: Optional[str]
-    type: TransactionType
+    type: Any  # Accept enum or string
     category_id: Optional[int]
-    frequency: str
+    frequency: Any  # Accept enum or string
     start_date: DateType
     end_date: Optional[DateType]
     next_execution_date: DateType
@@ -55,5 +55,16 @@ class RecurringTransactionResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer('amount')
+    def serialize_amount(self, value: Decimal) -> float:
+        """Serialize Decimal amount to float for JSON compatibility"""
+        return float(value)
+
+    @field_serializer('type', 'frequency')
+    def serialize_enums(self, value: Any) -> str:
+        """Serialize enum to string for JSON compatibility"""
+        if hasattr(value, 'value'):
+            return value.value
+        return str(value)

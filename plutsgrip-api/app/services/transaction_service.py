@@ -38,7 +38,6 @@ class TransactionService:
         }
 
         transaction = await self.transaction_repo.create(transaction_dict)
-        await self.db.commit()
 
         return transaction
 
@@ -100,7 +99,6 @@ class TransactionService:
         # Update only provided fields
         update_dict = transaction_data.model_dump(exclude_unset=True)
         updated_transaction = await self.transaction_repo.update(transaction_id, update_dict)
-        await self.db.commit()
 
         return updated_transaction
 

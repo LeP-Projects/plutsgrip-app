@@ -3,6 +3,7 @@ Category repository for database operations
 """
 from typing import List, Optional
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.category import Category, TransactionType
 from app.repositories.base_repository import BaseRepository
@@ -14,24 +15,40 @@ class CategoryRepository(BaseRepository[Category]):
     def __init__(self, db: AsyncSession):
         super().__init__(Category, db)
 
+    async def get_by_id(self, id: int) -> Optional[Category]:
+        """
+        Get a single category by ID with relationships loaded
+        """
+        query = select(Category).options(
+            selectinload(Category.user)
+        ).where(
+            Category.id == id,
+            Category.deleted_at.is_(None)
+        )
+
+        result = await self.db.execute(query)
+        return result.scalars().first()
+
     async def get_by_type(self, transaction_type: TransactionType) -> List[Category]:
         """
-        Get categories by transaction type
+        Get categories by transaction type with relationships loaded
 
         Args:
             transaction_type: Type of transaction (income or expense)
 
         Returns:
-            List of categories
+            List of categories with relationships loaded
         """
         result = await self.db.execute(
-            select(Category).where(Category.type == transaction_type)
+            select(Category).options(
+                selectinload(Category.user)
+            ).where(Category.type == transaction_type)
         )
         return list(result.scalars().all())
 
     async def get_by_name(self, name: str) -> Optional[Category]:
         """
-        Get category by name
+        Get category by name with relationships loaded
 
         Args:
             name: Category name
@@ -39,7 +56,11 @@ class CategoryRepository(BaseRepository[Category]):
         Returns:
             Category object or None
         """
-        result = await self.db.execute(select(Category).where(Category.name == name))
+        result = await self.db.execute(
+            select(Category).options(
+                selectinload(Category.user)
+            ).where(Category.name == name)
+        )
         return result.scalars().first()
 
     # TODO: Implement additional category-specific queries

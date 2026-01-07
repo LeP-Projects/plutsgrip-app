@@ -3,15 +3,15 @@ Report schemas for dashboard and financial summaries
 """
 from datetime import date
 from decimal import Decimal
-from typing import Optional, Dict
-from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any, List
+from pydantic import BaseModel, Field, field_serializer
 
 
 class DashboardResponse(BaseModel):
     """Schema for dashboard summary response"""
-    total_income: Decimal
-    total_expense: Decimal
-    balance: Decimal
+    total_income: float
+    total_expense: float
+    balance: float
     transaction_count: int
     income_count: int
     expense_count: int
@@ -21,22 +21,21 @@ class CategorySummary(BaseModel):
     """Schema for category summary in reports"""
     category_id: Optional[int]
     category_name: Optional[str]
-    total: Decimal
+    total: float
     count: int
-    percentage: float
 
 
 class FinancialSummaryResponse(BaseModel):
     """Schema for detailed financial summary response"""
-    period_start: date
-    period_end: date
-    total_income: Decimal
-    total_expense: Decimal
-    net_balance: Decimal
+    period_start: str  # Accept isoformat string from service
+    period_end: str  # Accept isoformat string from service
+    total_income: float
+    total_expense: float
+    net_balance: float
     transaction_count: int
-    income_by_category: list[CategorySummary]
-    expense_by_category: list[CategorySummary]
-    daily_totals: Dict[str, Dict[str, Decimal]]  # {date: {income: x, expense: y}}
+    income_by_category: List[Dict[str, Any]]  # Accept raw dict from service
+    expense_by_category: List[Dict[str, Any]]  # Accept raw dict from service
+    daily_totals: Dict[str, float]  # {date: total}
 
 
 class ReportFilters(BaseModel):

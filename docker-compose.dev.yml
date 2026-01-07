@@ -61,16 +61,12 @@ services:
       - ./plutsgrip-api/alembic:/app/alembic
       - ./plutsgrip-api/alembic.ini:/app/alembic.ini
       - ./plutsgrip-api/tests:/app/tests
+      - ./plutsgrip-api/seeds:/app/seeds
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - plutusgrip_dev
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   # ==================== FRONTEND ====================
   frontend:

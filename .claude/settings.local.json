@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(__NEW_LINE__ echo \"=== Complete Application Status ===\" echo \"\" echo \"Frontend:\" curl -s http://localhost:5173 -I)"
+      "Bash(__NEW_LINE__ echo \"=== Complete Application Status ===\" echo \"\" echo \"Frontend:\" curl -s http://localhost:5173 -I)",
+      "Bash(git commit:*)",
+      "Bash(git add:*)",
+      "Bash(git reset:*)",
+      "Bash(find:*)",
+      "Bash(/dev/null)",
+      "Bash(cd:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

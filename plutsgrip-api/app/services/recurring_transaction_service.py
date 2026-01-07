@@ -7,6 +7,7 @@ from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.recurring_transaction import RecurringTransaction, RecurrenceFrequency
 from app.models.transaction import Transaction
+from app.models.category import TransactionType
 from app.repositories.recurring_transaction_repository import RecurringTransactionRepository
 
 
@@ -48,16 +49,20 @@ class RecurringTransactionService:
         Returns:
             Transação recorrente criada
         """
-        next_execution_date = self._calculate_next_execution(start_date, frequency)
+        # Convert strings to enums
+        type_enum = TransactionType(type.lower()) if isinstance(type, str) else type
+        frequency_enum = RecurrenceFrequency(frequency.lower()) if isinstance(frequency, str) else frequency
+        
+        next_execution_date = self._calculate_next_execution(start_date, frequency_enum.value)
 
         recurring_data = {
             "user_id": user_id,
             "description": description,
             "amount": amount,
             "currency": currency,
-            "type": type,
+            "type": type_enum,
             "category_id": category_id,
-            "frequency": frequency,
+            "frequency": frequency_enum,
             "start_date": start_date,
             "end_date": end_date,
             "next_execution_date": next_execution_date,

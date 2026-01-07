@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card"
 import { Button } from "@/components/Button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs"
 import { useApi } from "@/hooks/useApi"
 import { apiService } from "@/services/api"
+import { useAuth } from "@/contexts/AuthContext"
+import { calculatePercentageChange, formatPercentage } from "@/utils/calculations"
 import {
   PlusCircle,
   TrendingUp,
@@ -16,6 +19,7 @@ import {
   FileText,
   Menu,
   X,
+  LogOut,
 } from "lucide-react"
 import { ExpenseChart } from "@/components/ExpenseChart"
 import { IncomeChart } from "@/components/IncomeChart"
@@ -112,22 +116,71 @@ const translations = {
 }
 
 export function Dashboard() {
+  const navigate = useNavigate()
+  const { logout } = useAuth()
   const [activeTab, setActiveTab] = useState("overview")
   const [language, setLanguage] = useState("en")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const isMobile = useIsMobile()
-  const { formatCurrency, convertAmount, currency } = useCurrency()
+  const { formatCurrency } = useCurrency()
+  const [transactionRefreshKey, setTransactionRefreshKey] = useState(0)
   const [dashboardFilters, setDashboardFilters] = useState({
     timeRange: "thisMonth",
     category: "all",
     type: "all",
   })
 
+  const handleTransactionCreated = () => {
+    setTransactionRefreshKey((prev) => prev + 1)
+  }
+
   // Busca dados do dashboard da API
   const { data: dashboardData, loading: dashboardLoading, error: dashboardError } = useApi(
     () => apiService.getDashboard(),
     true // fetch immediately
   )
+
+  // Busca dados de tendências para calcular percentual de mudança
+  const { data: trendsData } = useApi(
+    () => apiService.getMonthlyTrends(2), // Últimos 2 meses para comparação
+    true // fetch immediately
+  )
+
+  // Busca dados de orçamentos para calcular percentual de uso
+  const { data: budgetsData } = useApi(
+    () => apiService.listBudgets(0, 100),
+    true // fetch immediately
+  )
+
+  // Calcula percentuais de mudança comparando mês atual com anterior
+  const balanceChangePercent = trendsData && trendsData.balance?.length >= 2
+    ? calculatePercentageChange(
+      trendsData.balance[trendsData.balance.length - 1]?.value || 0,
+      trendsData.balance[trendsData.balance.length - 2]?.value || 0
+    )
+    : 0
+
+  const expenseChangePercent = trendsData && trendsData.expense?.length >= 2
+    ? calculatePercentageChange(
+      trendsData.expense[trendsData.expense.length - 1]?.value || 0,
+      trendsData.expense[trendsData.expense.length - 2]?.value || 0
+    )
+    : 0
+
+  const incomeChangePercent = trendsData && trendsData.income?.length >= 2
+    ? calculatePercentageChange(
+      trendsData.income[trendsData.income.length - 1]?.value || 0,
+      trendsData.income[trendsData.income.length - 2]?.value || 0
+    )
+    : 0
+
+  // Calcula percentual de uso de orçamento
+  const budgetUsagePercent = budgetsData && budgetsData.length > 0
+    ? (budgetsData.reduce((total, budget) => total + (budget.amount || 0), 0) > 0
+      ? (dashboardData?.total_expense || 0) /
+      (budgetsData.reduce((total, budget) => total + (budget.amount || 0), 0)) * 100
+      : 0)
+    : 0
 
   // Usa dados da API ou valores padrão
   // Mapeia os dados da API (snake_case) para o formato esperado
@@ -136,11 +189,19 @@ export function Dashboard() {
     monthlyExpenses: dashboardData.total_expense || 0,
     monthlyIncome: dashboardData.total_income || 0,
     budgetRemaining: dashboardData.balance || 0, // Usa balance como orçamento restante
+    balanceChangePercent,
+    expenseChangePercent,
+    incomeChangePercent,
+    budgetUsagePercent,
   } : {
     totalBalance: 0,
     monthlyExpenses: 0,
     monthlyIncome: 0,
     budgetRemaining: 0,
+    balanceChangePercent: 0,
+    expenseChangePercent: 0,
+    incomeChangePercent: 0,
+    budgetUsagePercent: 0,
   }
 
   useEffect(() => {
@@ -172,6 +233,11 @@ export function Dashboard() {
     }
   }
 
+  const handleLogout = () => {
+    logout()
+    navigate("/login", { replace: true })
+  }
+
   return (
     <div className="flex min-h-screen bg-background">
       {/* Backdrop for mobile menu */}
@@ -191,9 +257,12 @@ export function Dashboard() {
         `}
       >
         <div className="p-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-serif font-bold text-sidebar-foreground">{t.financeTracker}</h1>
-            <p className="text-sm text-sidebar-foreground/70 mt-1">{t.personalExpenseManagement}</p>
+          <div className="flex items-center gap-3">
+            <img src="/plutus.png" alt="PlutusGrip" className="h-8 w-8 object-contain" />
+            <div>
+              <h1 className="text-2xl font-serif font-bold text-sidebar-foreground">PlutusGrip</h1>
+              <p className="text-sm text-sidebar-foreground/70 mt-1">{t.personalExpenseManagement}</p>
+            </div>
           </div>
           {isMobile && (
             <Button
@@ -249,6 +318,18 @@ export function Dashboard() {
             {t.settings}
           </Button>
         </nav>
+
+        {/* Logout Section */}
+        <div className="px-4 py-4 border-t border-sidebar-border">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={handleLogout}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            {language === "pt" ? "Sair" : "Logout"}
+          </Button>
+        </div>
       </aside>
 
       <main className="flex-1 p-4 md:p-6">
@@ -289,7 +370,10 @@ export function Dashboard() {
                     <h2 className="text-2xl sm:text-3xl font-serif font-bold text-foreground">{t.financialOverview}</h2>
                     <p className="text-sm sm:text-base text-muted-foreground">{t.trackExpenses}</p>
                   </div>
-                  <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
+                  <Button
+                    className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
+                    onClick={() => handleTabChange("transactions")}
+                  >
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {t.addTransaction}
                   </Button>
@@ -309,10 +393,12 @@ export function Dashboard() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-primary">
-                        {formatCurrency(convertAmount(filteredData.totalBalance, "USD", currency))}
+                        {formatCurrency(filteredData.totalBalance)}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        <span className="text-green-600">+2.5%</span> {t.fromLastMonth}
+                        <span className={filteredData.balanceChangePercent >= 0 ? "text-green-600" : "text-red-600"}>
+                          {formatPercentage(filteredData.balanceChangePercent)}
+                        </span> {t.fromLastMonth}
                       </p>
                     </CardContent>
                   </Card>
@@ -324,10 +410,12 @@ export function Dashboard() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-destructive">
-                        {formatCurrency(convertAmount(filteredData.monthlyExpenses, "USD", currency))}
+                        {formatCurrency(filteredData.monthlyExpenses)}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        <span className="text-red-600">+12.3%</span> {t.fromLastMonth}
+                        <span className={filteredData.expenseChangePercent >= 0 ? "text-red-600" : "text-green-600"}>
+                          {formatPercentage(filteredData.expenseChangePercent)}
+                        </span> {t.fromLastMonth}
                       </p>
                     </CardContent>
                   </Card>
@@ -339,10 +427,12 @@ export function Dashboard() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-green-600">
-                        {formatCurrency(convertAmount(filteredData.monthlyIncome, "USD", currency))}
+                        {formatCurrency(filteredData.monthlyIncome)}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        <span className="text-green-600">+8.2%</span> {t.fromLastMonth}
+                        <span className={filteredData.incomeChangePercent >= 0 ? "text-green-600" : "text-red-600"}>
+                          {formatPercentage(filteredData.incomeChangePercent)}
+                        </span> {t.fromLastMonth}
                       </p>
                     </CardContent>
                   </Card>
@@ -354,9 +444,13 @@ export function Dashboard() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-secondary">
-                        {formatCurrency(convertAmount(filteredData.budgetRemaining, "USD", currency))}
+                        {formatCurrency(filteredData.budgetRemaining)}
                       </div>
-                      <p className="text-xs text-muted-foreground">62% {t.ofMonthlyBudget}</p>
+                      <p className="text-xs text-muted-foreground">
+                        <span className={filteredData.budgetUsagePercent <= 100 ? "text-green-600" : "text-red-600"}>
+                          {formatPercentage(filteredData.budgetUsagePercent, 0)}
+                        </span> {t.ofMonthlyBudget}
+                      </p>
                     </CardContent>
                   </Card>
                 </div>
@@ -374,6 +468,7 @@ export function Dashboard() {
                 <RecentTransactions
                   onViewAllClick={handleViewAllTransactions}
                   language={language}
+                  refreshKey={transactionRefreshKey}
                 />
               </>
             )}
@@ -392,25 +487,32 @@ export function Dashboard() {
               </TabsList>
 
               <TabsContent value="all" className="space-y-6">
-                <ExpenseForm language={language} />
-                <RecentTransactions showAll language={language} />
+                <ExpenseForm language={language} onTransactionCreated={handleTransactionCreated} />
+                <RecentTransactions
+                  showAll
+                  typeFilter="all"
+                  language={language}
+                  refreshKey={transactionRefreshKey}
+                />
               </TabsContent>
 
               <TabsContent value="income" className="space-y-6">
-                <ExpenseForm language={language} defaultType="income" />
+                <ExpenseForm language={language} defaultType="income" onTransactionCreated={handleTransactionCreated} />
                 <RecentTransactions
                   showAll
                   typeFilter="income"
                   language={language}
+                  refreshKey={transactionRefreshKey}
                 />
               </TabsContent>
 
               <TabsContent value="expense" className="space-y-6">
-                <ExpenseForm language={language} defaultType="expense" />
+                <ExpenseForm language={language} defaultType="expense" onTransactionCreated={handleTransactionCreated} />
                 <RecentTransactions
                   showAll
                   typeFilter="expense"
                   language={language}
+                  refreshKey={transactionRefreshKey}
                 />
               </TabsContent>
             </Tabs>

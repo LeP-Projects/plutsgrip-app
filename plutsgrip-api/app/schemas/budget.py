@@ -3,8 +3,9 @@ Schemas de Orçamento para validação de requisições/respostas
 """
 from datetime import datetime, date as DateType
 from decimal import Decimal
-from typing import Optional
-from pydantic import BaseModel, Field
+from typing import Optional, Any
+from pydantic import BaseModel, Field, ConfigDict, field_serializer
+from app.models.budget import BudgetPeriod
 
 
 # Schemas de Requisição
@@ -31,11 +32,22 @@ class BudgetResponse(BaseModel):
     user_id: int
     category_id: int
     amount: Decimal
-    period: str
+    period: Any  # Accept enum or string
     start_date: DateType
     notifications_enabled: bool
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer('amount')
+    def serialize_amount(self, value: Decimal) -> float:
+        """Serialize Decimal amount to float for JSON compatibility"""
+        return float(value)
+
+    @field_serializer('period')
+    def serialize_period(self, value: Any) -> str:
+        """Serialize BudgetPeriod enum to string for JSON compatibility"""
+        if hasattr(value, 'value'):
+            return value.value
+        return str(value)

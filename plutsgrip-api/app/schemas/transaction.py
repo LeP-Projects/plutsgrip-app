@@ -5,7 +5,7 @@ from datetime import datetime
 from datetime import date as DateType
 from decimal import Decimal
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict, field_serializer
 from app.models.category import TransactionType
 from app.schemas.category import CategoryResponse
 
@@ -58,8 +58,12 @@ class TransactionResponse(BaseModel):
     updated_at: datetime
     category: Optional[CategoryResponse] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer('amount')
+    def serialize_amount(self, value: Decimal) -> float:
+        """Serialize Decimal amount to float for JSON compatibility"""
+        return float(value)
 
 
 class TransactionListResponse(BaseModel):

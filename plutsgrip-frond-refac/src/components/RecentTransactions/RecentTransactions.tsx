@@ -3,10 +3,10 @@ import { Badge } from "@/components/Badge"
 import { Button } from "@/components/Button"
 import { Input } from "@/components/Input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select"
-import { MoreHorizontal, Edit, Trash2, Search, Calendar } from "lucide-react"
+import { MoreHorizontal, Edit, Trash2, Search } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/DropdownMenu"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover"
-import { Calendar as CalendarComponent } from "@/components/Calendar"
+import { Calendar } from "@/components/Calendar"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,7 +31,17 @@ interface Transaction {
   description: string
   amount: number
   date: string
-  category: string
+  category: {
+    id: string
+    name: string
+    type: string
+    color: string
+    icon: string
+    is_default: boolean
+    user_id: string
+    created_at: string
+    updated_at: string
+  } | null
   type: "expense" | "income"
   notes?: string
 }
@@ -110,6 +120,7 @@ interface RecentTransactionsProps {
   onViewAllClick?: () => void
   typeFilter?: "income" | "expense" | "all"
   language: string
+  refreshKey?: number
 }
 
 export function RecentTransactions({
@@ -117,11 +128,12 @@ export function RecentTransactions({
   onViewAllClick,
   typeFilter = "all",
   language,
+  refreshKey = 0,
 }: RecentTransactionsProps) {
   // Busca transações da API
   const fetchTransactions = useCallback(
     () => apiService.listTransactions(1, showAll ? 100 : 5, typeFilter !== "all" ? typeFilter : undefined),
-    [showAll, typeFilter]
+    [showAll, typeFilter, refreshKey]
   )
 
   const { data: transactionsData, loading: transactionsLoading } = useApi(
@@ -139,8 +151,8 @@ export function RecentTransactions({
 
   // Atualiza transactions quando dados da API chegam
   useEffect(() => {
-    if (transactionsData?.data) {
-      setTransactions(transactionsData.data)
+    if (transactionsData?.transactions) {
+      setTransactions(transactionsData.transactions)
     }
   }, [transactionsData])
 
@@ -164,10 +176,10 @@ export function RecentTransactions({
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch =
       transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.category?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (transaction.notes && transaction.notes.toLowerCase().includes(searchTerm.toLowerCase()))
 
-    const matchesCategory = categoryFilter === "all" || transaction.category === categoryFilter
+    const matchesCategory = categoryFilter === "all" || transaction.category?.name === categoryFilter
 
     const effectiveTypeFilter = typeFilter !== "all" ? typeFilter : internalTypeFilter
     const matchesType = effectiveTypeFilter === "all" || transaction.type === effectiveTypeFilter
@@ -178,7 +190,7 @@ export function RecentTransactions({
   })
 
   const displayTransactions = showAll ? filteredTransactions : filteredTransactions.slice(0, 5)
-  const categories = Array.from(new Set(transactions.map((t) => t.category)))
+  const categories = Array.from(new Set(transactions.map((t) => t.category?.name).filter(Boolean)))
 
   return (
     <Card>
@@ -202,12 +214,15 @@ export function RecentTransactions({
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full sm:w-auto sm:min-w-[140px] justify-start bg-transparent">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {dateFilter ? format(dateFilter, "MMM dd") : t.dateFilter}
+                    📅
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <CalendarComponent mode="single" selected={dateFilter} onSelect={setDateFilter} initialFocus />
+                <PopoverContent className="w-auto max-w-[320px] sm:max-w-sm md:max-w-md p-0">
+                  <Calendar
+                    selected={dateFilter}
+                    onSelect={setDateFilter}
+                    className="[--cell-size:1.75rem] md:[--cell-size:2.5rem]"
+                  />
                   <div className="p-3 border-t">
                     <Button variant="outline" size="sm" onClick={() => setDateFilter(undefined)} className="w-full">
                       {language === "pt" ? "Limpar Filtro" : "Clear Filter"}
@@ -258,7 +273,7 @@ export function RecentTransactions({
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground truncate">{transaction.description}</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(transaction.date).toLocaleDateString()} • {transaction.category}
+                      {new Date(transaction.date).toLocaleDateString()} • {transaction.category?.name || "Uncategorized"}
                     </p>
                     {transaction.notes && (
                       <p className="text-xs text-muted-foreground mt-1 italic line-clamp-2">
@@ -272,9 +287,8 @@ export function RecentTransactions({
               <div className="flex items-center justify-between sm:justify-end gap-3">
                 <div className="text-left sm:text-right">
                   <p
-                    className={`font-semibold text-base sm:text-lg ${
-                      transaction.type === "expense" ? "text-destructive" : "text-green-600"
-                    }`}
+                    className={`font-semibold text-base sm:text-lg ${transaction.type === "expense" ? "text-destructive" : "text-green-600"
+                      }`}
                   >
                     {transaction.type === "expense" ? "-" : "+"}${transaction.amount.toFixed(2)}
                   </p>
@@ -387,14 +401,14 @@ export function RecentTransactions({
                   <Label htmlFor="category">
                     {t.category} {t.required}
                   </Label>
-                  <Select name="category" defaultValue={editingTransaction.category} required>
+                  <Select name="category" defaultValue={editingTransaction.category?.name} required>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
+                      {categories.map((categoryName) => (
+                        <SelectItem key={categoryName} value={categoryName}>
+                          {categoryName}
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -65,10 +65,12 @@ const translations = {
 interface ExpenseFormProps {
   language: string
   defaultType?: "income" | "expense"
+  onTransactionCreated?: () => void
 }
 
-export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
+export function ExpenseForm({ language, defaultType, onTransactionCreated }: ExpenseFormProps) {
   const [date, setDate] = useState<Date>()
+  const [calendarOpen, setCalendarOpen] = useState(false)
   const { currency } = useCurrency()
 
   // Busca categorias da API
@@ -99,7 +101,7 @@ export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
   })
 
   // Usa categorias da API ou lista vazia
-  const categories = categoriesData || []
+  const categories = categoriesData?.categories || []
 
   const t = translations[language as keyof typeof translations]
 
@@ -154,6 +156,9 @@ export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
 
       // Show success message (você pode adicionar um toast aqui)
       console.log("Transação criada com sucesso!")
+
+      // Notify parent component to refresh transactions list
+      onTransactionCreated?.()
     } catch (error) {
       console.error("Erro ao criar transação:", error)
       // Show error message (você pode adicionar um toast aqui)
@@ -223,7 +228,7 @@ export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
               <Label>
                 {t.date} {t.required}
               </Label>
-              <Popover>
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -239,16 +244,16 @@ export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar
-                    mode="single"
                     selected={date}
-                    onSelect={(selectedDate) => {
+                    onSelect={(selectedDate: Date | undefined) => {
                       setDate(selectedDate)
+                      setCalendarOpen(false) // Close after selection
                       if (errors.date) {
                         setErrors((prev) => ({ ...prev, date: false }))
                       }
                     }}
-                    language={language}
                     initialFocus
+                    className="[--cell-size:1.75rem] md:[--cell-size:2.5rem]"
                   />
                 </PopoverContent>
               </Popover>
@@ -276,7 +281,7 @@ export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
+                      <SelectItem key={category.id} value={String(category.id)}>
                         {category.name}
                       </SelectItem>
                     ))}

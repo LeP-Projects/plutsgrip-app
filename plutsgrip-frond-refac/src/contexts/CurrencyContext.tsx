@@ -145,7 +145,7 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
         currency: "BRL",
       }).format(amount)
     } else {
-      return new Intl.NumberFormat("en-US", {
+      return new Intl.NumberFormat("pt-BR", {
         style: "currency",
         currency: "USD",
       }).format(amount)

@@ -56,12 +56,12 @@ export function ColumnChart({ language, filters }: ColumnChartProps) {
   )
 
   const filteredData = useMemo(() => {
-    const transactions = transactionsData?.data || []
+    const transactions = transactionsData?.transactions || []
     let filtered = transactions
 
     // Apply category filter
     if (filters?.category && filters.category !== "all") {
-      filtered = filtered.filter((transaction) => transaction.category === filters.category)
+      filtered = filtered.filter((transaction) => transaction.category?.name === filters.category)
     }
 
     // Apply type filter
@@ -73,7 +73,7 @@ export function ColumnChart({ language, filters }: ColumnChartProps) {
     const monthlyData: { [key: string]: any } = {}
     filtered.forEach((transaction) => {
       const date = new Date(transaction.date)
-      const monthKey = date.toLocaleString("en-US", { month: "short" })
+      const monthKey = date.toLocaleString("pt-BR", { month: "short" })
 
       if (!monthlyData[monthKey]) {
         monthlyData[monthKey] = { month: monthKey, income: 0, expenses: 0 }

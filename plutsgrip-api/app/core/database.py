@@ -65,3 +65,121 @@ async def init_db() -> None:
 async def close_db() -> None:
     """Close database connections"""
     await engine.dispose()
+
+
+async def seed_default_categories() -> None:
+    """
+    Seed database with default categories
+    Creates default categories if they don't exist
+    """
+    from sqlalchemy import select
+    from app.models.category import Category, TransactionType
+
+    async with AsyncSessionLocal() as session:
+        try:
+            # Delete existing default categories to ensure fresh seed with updated names
+            from sqlalchemy import delete
+            await session.execute(
+                delete(Category).where(Category.is_default == True)
+            )
+            await session.commit()
+            print("Cleared existing default categories")
+
+            # Default categories
+            default_categories = [
+                # Expense categories
+                Category(
+                    name="Alimentação",
+                    type=TransactionType.EXPENSE,
+                    color="#FF6B6B",
+                    icon="utensils",
+                    is_default=True
+                ),
+                Category(
+                    name="Transporte",
+                    type=TransactionType.EXPENSE,
+                    color="#4ECDC4",
+                    icon="car",
+                    is_default=True
+                ),
+                Category(
+                    name="Compras",
+                    type=TransactionType.EXPENSE,
+                    color="#FFE66D",
+                    icon="shopping-bag",
+                    is_default=True
+                ),
+                Category(
+                    name="Entretenimento",
+                    type=TransactionType.EXPENSE,
+                    color="#A8D8EA",
+                    icon="popcorn",
+                    is_default=True
+                ),
+                Category(
+                    name="Contas",
+                    type=TransactionType.EXPENSE,
+                    color="#95E1D3",
+                    icon="lightbulb",
+                    is_default=True
+                ),
+                Category(
+                    name="Saúde",
+                    type=TransactionType.EXPENSE,
+                    color="#F38181",
+                    icon="heart",
+                    is_default=True
+                ),
+                Category(
+                    name="Educação",
+                    type=TransactionType.EXPENSE,
+                    color="#AA96DA",
+                    icon="book",
+                    is_default=True
+                ),
+                Category(
+                    name="Viagem",
+                    type=TransactionType.EXPENSE,
+                    color="#FCBAD3",
+                    icon="plane",
+                    is_default=True
+                ),
+                # Income categories
+                Category(
+                    name="Salário",
+                    type=TransactionType.INCOME,
+                    color="#5FD068",
+                    icon="briefcase",
+                    is_default=True
+                ),
+                Category(
+                    name="Freelance",
+                    type=TransactionType.INCOME,
+                    color="#7CB9E8",
+                    icon="laptop",
+                    is_default=True
+                ),
+                Category(
+                    name="Investimentos",
+                    type=TransactionType.INCOME,
+                    color="#F0C040",
+                    icon="chart-line",
+                    is_default=True
+                ),
+                Category(
+                    name="Outras Rendas",
+                    type=TransactionType.INCOME,
+                    color="#9FB469",
+                    icon="gift",
+                    is_default=True
+                ),
+            ]
+
+            # Add all categories
+            session.add_all(default_categories)
+            await session.commit()
+            print(f"Successfully seeded {len(default_categories)} default categories")
+
+        except Exception as e:
+            await session.rollback()
+            print(f"Error seeding default categories: {e}")

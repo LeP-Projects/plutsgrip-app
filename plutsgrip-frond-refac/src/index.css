@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
 @theme {
   /* Light mode colors */
   --color-border: oklch(0.922 0.013 252.417);

@@ -4,7 +4,7 @@ Loads environment variables from .env file
 """
 from functools import lru_cache
 from typing import List
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "postgresql://plutusgrip_user:plutusgrip_password@localhost:5432/plutusgrip_db"
     DATABASE_ECHO: bool = False
+
+    # Rate Limiting
+    RATE_LIMIT_ENABLED: bool = True
 
     # Security
     SECRET_KEY: str = "your-super-secret-key-change-this-in-production"
@@ -55,9 +58,10 @@ class Settings(BaseSettings):
         """Convert comma-separated ALLOWED_METHODS to list"""
         return [method.strip() for method in self.ALLOWED_METHODS.split(",")]
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True
+    )
 
 
 @lru_cache()

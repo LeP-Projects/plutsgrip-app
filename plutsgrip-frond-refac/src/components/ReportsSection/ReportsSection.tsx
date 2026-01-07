@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card"
 import { Button } from "@/components/Button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select"
-import { Calendar, Filter, RotateCcw, Download, FileText, FileSpreadsheet } from "lucide-react"
+import { Filter, RotateCcw, Download, FileText, FileSpreadsheet } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover"
-import { Calendar as CalendarComponent } from "@/components/Calendar"
+import { Calendar } from "@/components/Calendar"
 import { ExpenseChart } from "@/components/ExpenseChart"
 import { IncomeChart } from "@/components/IncomeChart"
 import { CategoryChart } from "@/components/CategoryChart"
@@ -185,7 +185,6 @@ export function ReportsSection({ language }: ReportsSectionProps) {
               {/* Time Range Filter */}
               <Select value={filters.timeRange} onValueChange={(value) => handleFilterChange("timeRange", value)}>
                 <SelectTrigger>
-                  <Calendar className="h-4 w-4 mr-2" />
                   <SelectValue placeholder={t.timeRange} />
                 </SelectTrigger>
                 <SelectContent>
@@ -203,31 +202,30 @@ export function ReportsSection({ language }: ReportsSectionProps) {
               {filters.timeRange === "custom" && (
                 <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="justify-start bg-transparent">
-                      <Calendar className="h-4 w-4 mr-2" />
+                    <Button variant="outline" className="flex justify-self-end justify-center max-w-3xs bg-transparent">
                       {startDate && endDate
                         ? `${format(startDate, "MMM dd")} - ${format(endDate, "MMM dd")}`
                         : t.selectStartDate}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto overflow-hidden p-0" align="start">
                     <div className="p-4 space-y-4">
                       <div className="space-y-2">
                         <label className="text-sm font-medium">{t.startDate}</label>
-                        <CalendarComponent
+                        <Calendar
                           mode="single"
                           selected={startDate}
                           onSelect={setStartDate}
-                          language={language}
+                          className="[--cell-size:2.75rem] p-3"
                         />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium">{t.endDate}</label>
-                        <CalendarComponent
+                        <Calendar
                           mode="single"
                           selected={endDate}
                           onSelect={setEndDate}
-                          language={language}
+                          className="[--cell-size:2.75rem] p-3"
                         />
                       </div>
                       <div className="flex gap-2">
