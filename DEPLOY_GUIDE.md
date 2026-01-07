@@ -28,6 +28,25 @@ O PlutusGrip está hospedado em um **Droplet da DigitalOcean** com a seguinte st
 
 ---
 
+## 🎉 Novidades v2.0.0 - Repositório Unificado
+
+**O que mudou:**
+
+Anteriormente, backend e frontend eram gerenciados em diretórios separados (`/opt/plutusgrip-api` e `/opt/plutusgrip-frontend`), como se fossem repositórios diferentes. Isso complicava atualizações e manutenção.
+
+**Agora (v2.0.0):**
+- ✅ **Repositório único:** `/opt/plutsgrip-app` contém tudo
+- ✅ **Um único `git pull`:** Atualiza backend, frontend e documentação de uma vez
+- ✅ **Documentação em PT-BR:** Toda documentação traduzida para português brasileiro
+- ✅ **Mais simples:** Comandos de atualização muito mais diretos
+- ✅ **Melhor organização:** Estrutura idêntica ao repositório GitHub
+
+**Impacto nos comandos:**
+- Antes: `cd /opt/plutusgrip-api && git pull` + `cd /opt/plutusgrip-frontend && git pull`
+- Agora: `cd /opt/plutsgrip-app && git pull` ✨
+
+---
+
 ## 🏗️ Arquitetura do Deploy
 
 ```
@@ -38,13 +57,19 @@ Internet
 [Droplet - 68.183.98.186]
    ↓
 [Nginx :80]
-   ├─→ / (Frontend estático) → /opt/plutusgrip-frontend/dist/
+   ├─→ / (Frontend estático) → /opt/plutsgrip-app/plutsgrip-frond-refac/dist/
    └─→ /api/* (Backend API)   → localhost:8000
        ↓
    [FastAPI + Uvicorn :8000]
-       ↓
+   ↓ (/opt/plutsgrip-app/plutsgrip-api/)
    [Neon PostgreSQL via SSL]
 ```
+
+**Estrutura Unificada:**
+- Todo o projeto está em um único repositório: `/opt/plutsgrip-app`
+- Backend: `/opt/plutsgrip-app/plutsgrip-api/`
+- Frontend: `/opt/plutsgrip-app/plutsgrip-frond-refac/`
+- Documentação: `/opt/plutsgrip-app/docs/`
 
 ---
 
@@ -72,6 +97,9 @@ Internet
 
 ## 🔄 Como Atualizar a Aplicação
 
+> **✨ Novo! Repositório Unificado**
+> Agora todo o projeto está em `/opt/plutsgrip-app`. Um único `git pull` atualiza backend, frontend e documentação!
+
 ### **Cenário 1: Atualização do Backend (Python/FastAPI)**
 
 Quando houver mudanças no código do backend (`plutsgrip-api/`):
@@ -81,33 +109,35 @@ Quando houver mudanças no código do backend (`plutsgrip-api/`):
 ssh root@68.183.98.186
 # Ou usar console web: https://cloud.digitalocean.com/droplets
 
-# 2. Navegar para o diretório do backend
-cd /opt/plutusgrip-api
+# 2. Navegar para o repositório principal
+cd /opt/plutsgrip-app
 
 # 3. Fazer backup do .env (importante!)
-cp .env .env.backup
+cp plutsgrip-api/.env plutsgrip-api/.env.backup
 
 # 4. Puxar as mudanças do GitHub
-git fetch origin main
 git pull origin main
 
-# 5. Ativar ambiente virtual
+# 5. Navegar para o backend
+cd plutsgrip-api
+
+# 6. Ativar ambiente virtual
 source venv/bin/activate
 
-# 6. Instalar novas dependências (se houver)
+# 7. Instalar novas dependências (se houver)
 pip install -r requirements.txt
 
-# 7. Rodar migrations (se houver)
+# 8. Rodar migrations (se houver)
 alembic upgrade head
 
-# 8. Reiniciar o serviço
-exit  # Sai do venv
+# 9. Sair do venv e reiniciar o serviço
+deactivate
 systemctl restart plutusgrip-api
 
-# 9. Verificar se está rodando
+# 10. Verificar se está rodando
 systemctl status plutusgrip-api
 
-# 10. Verificar logs em tempo real
+# 11. Verificar logs em tempo real
 tail -f /var/log/plutusgrip/api.log
 ```
 
@@ -150,7 +180,7 @@ scp dist.tar.gz root@68.183.98.186:/tmp/
 
 # 8. No Droplet, extrair e substituir
 ssh root@68.183.98.186
-cd /opt/plutusgrip-frontend
+cd /opt/plutsgrip-app/plutsgrip-frond-refac
 rm -rf dist.backup
 mv dist dist.backup  # Backup da versão anterior
 tar -xzf /tmp/dist.tar.gz
@@ -167,26 +197,29 @@ curl http://localhost/
 # 1. Conectar ao Droplet
 ssh root@68.183.98.186
 
-# 2. Navegar para o diretório
-cd /opt/plutusgrip-frontend
+# 2. Navegar para o repositório
+cd /opt/plutsgrip-app
 
-# 3. Puxar mudanças
+# 3. Puxar mudanças do GitHub
 git pull origin main
 
-# 4. Verificar .env.production
+# 4. Navegar para o frontend
+cd plutsgrip-frond-refac
+
+# 5. Verificar .env.production
 cat .env.production
 # Deve conter: VITE_API_URL=http://68.183.98.186/api
 
-# 5. Instalar dependências
+# 6. Instalar dependências
 npm install
 
-# 6. Build
+# 7. Build
 npm run build
 
-# 7. Verificar
+# 8. Verificar
 ls -la dist/
 
-# 8. Não precisa reiniciar Nginx (arquivos estáticos)
+# 9. Não precisa reiniciar Nginx (arquivos estáticos)
 ```
 
 ---
@@ -194,22 +227,27 @@ ls -la dist/
 ### **Cenário 3: Atualização Completa (Backend + Frontend)**
 
 ```bash
-# 1. Atualizar backend primeiro
-cd /opt/plutusgrip-api
+# 1. Conectar ao Droplet
+ssh root@68.183.98.186
+
+# 2. Navegar para o repositório e puxar mudanças
+cd /opt/plutsgrip-app
 git pull origin main
+
+# 3. Atualizar backend
+cd plutsgrip-api
 source venv/bin/activate
 pip install -r requirements.txt
 alembic upgrade head
 deactivate
 systemctl restart plutusgrip-api
 
-# 2. Atualizar frontend
-cd /opt/plutusgrip-frontend
-git pull origin main
+# 4. Atualizar frontend
+cd ../plutsgrip-frond-refac
 npm install
 npm run build
 
-# 3. Verificar tudo
+# 5. Verificar tudo
 systemctl status plutusgrip-api nginx
 curl http://localhost:8000/health
 curl http://68.183.98.186/api/health
@@ -225,21 +263,25 @@ Quando houver novos arquivos em `plutsgrip-api/alembic/versions/`:
 # 1. Conectar ao Droplet
 ssh root@68.183.98.186
 
-# 2. Navegar e ativar venv
-cd /opt/plutusgrip-api
+# 2. Navegar para o repositório e puxar mudanças
+cd /opt/plutsgrip-app
+git pull origin main
+
+# 3. Navegar para o backend e ativar venv
+cd plutsgrip-api
 source venv/bin/activate
 
-# 3. Ver migrations pendentes
+# 4. Ver migrations pendentes
 alembic current
 alembic history
 
-# 4. Aplicar migrations
+# 5. Aplicar migrations
 alembic upgrade head
 
-# 5. Verificar se aplicou
+# 6. Verificar se aplicou
 alembic current
 
-# 6. Reiniciar backend
+# 7. Reiniciar backend
 deactivate
 systemctl restart plutusgrip-api
 ```
@@ -250,35 +292,46 @@ systemctl restart plutusgrip-api
 
 Se algo der errado após deploy:
 
-#### **Backend:**
 ```bash
-cd /opt/plutusgrip-api
+# 1. Conectar ao Droplet
+ssh root@68.183.98.186
 
-# Voltar para commit anterior
-git log --oneline -5  # Ver commits
+# 2. Navegar para o repositório
+cd /opt/plutsgrip-app
+
+# 3. Ver commits recentes
+git log --oneline -10
+
+# 4. Voltar para commit anterior
 git reset --hard <COMMIT_HASH_ANTERIOR>
+
+# 5. Rollback do Backend (se necessário)
+cd plutsgrip-api
+source venv/bin/activate
 
 # Reverter migrations (se necessário)
 alembic downgrade -1  # Volta 1 migration
 # ou
 alembic downgrade <revision_id>
 
-# Reiniciar
+deactivate
 systemctl restart plutusgrip-api
-```
 
-#### **Frontend:**
-```bash
-cd /opt/plutusgrip-frontend
+# 6. Rollback do Frontend (se necessário)
+cd ../plutsgrip-frond-refac
 
-# Restaurar backup
+# Opção A: Restaurar backup do dist
 rm -rf dist
 mv dist.backup dist
 
-# Ou voltar commit
-git log --oneline -5
-git reset --hard <COMMIT_HASH_ANTERIOR>
+# Opção B: Rebuild do commit revertido
+npm install
 npm run build
+
+# 7. Verificar
+systemctl status plutusgrip-api
+curl http://68.183.98.186/api/health
+curl http://68.183.98.186/
 ```
 
 ---
@@ -286,36 +339,49 @@ npm run build
 ## 📁 Estrutura de Diretórios
 
 ```
-/opt/plutusgrip-api/          # Backend FastAPI
-├── venv/                      # Ambiente virtual Python
-├── alembic/                   # Migrations do banco
-├── app/                       # Código da aplicação
-├── main.py                    # Entry point
-├── .env                       # Variáveis de ambiente (NÃO commitar!)
-└── requirements.txt           # Dependências Python
-
-/opt/plutusgrip-frontend/      # Frontend React
-├── dist/                      # Build de produção (servido pelo Nginx)
-├── src/                       # Código fonte
-├── node_modules/              # Dependências Node
-├── package.json               # Configuração NPM
-└── .env.production            # Variáveis de ambiente do frontend
+/opt/plutsgrip-app/               # 🆕 Repositório Unificado
+├── .git/                         # Controle de versão Git
+├── docs/                         # Documentação do projeto (PT-BR)
+│   ├── INDEX.md
+│   ├── BACKEND.md
+│   └── FRONTEND.md
+├── plutsgrip-api/                # Backend FastAPI
+│   ├── venv/                     # Ambiente virtual Python
+│   ├── alembic/                  # Migrations do banco
+│   ├── app/                      # Código da aplicação
+│   ├── main.py                   # Entry point
+│   ├── .env                      # Variáveis de ambiente (NÃO commitar!)
+│   └── requirements.txt          # Dependências Python
+├── plutsgrip-frond-refac/        # Frontend React
+│   ├── dist/                     # Build de produção (servido pelo Nginx)
+│   ├── src/                      # Código fonte
+│   ├── node_modules/             # Dependências Node
+│   ├── package.json              # Configuração NPM
+│   └── .env.production           # Variáveis de ambiente do frontend
+├── README.md                     # README principal (PT-BR)
+└── DEPLOY_GUIDE.md               # Este guia
 
 /etc/nginx/
-├── sites-available/plutusgrip # Configuração do site
-└── sites-enabled/plutusgrip   # Link simbólico
+├── sites-available/plutusgrip    # Configuração do site
+└── sites-enabled/plutusgrip      # Link simbólico
 
 /etc/systemd/system/
-└── plutusgrip-api.service     # Serviço do backend
+└── plutusgrip-api.service        # Serviço do backend
 
 /var/log/plutusgrip/
-├── api.log                    # Logs do backend
-└── api-error.log              # Erros do backend
+├── api.log                       # Logs do backend
+└── api-error.log                 # Erros do backend
 
 /var/log/nginx/
-├── plutusgrip-access.log      # Logs de acesso
-└── plutusgrip-error.log       # Erros do Nginx
+├── plutusgrip-access.log         # Logs de acesso
+└── plutusgrip-error.log          # Erros do Nginx
 ```
+
+**Vantagens da Estrutura Unificada:**
+- ✅ Um único `git pull` atualiza tudo
+- ✅ Documentação sempre sincronizada
+- ✅ Histórico de commits unificado
+- ✅ Mais fácil de manter e navegar
 
 ---
 
@@ -370,7 +436,7 @@ tail -f /var/log/nginx/plutusgrip-error.log
 
 ```bash
 # Testar conexão
-cd /opt/plutusgrip-api
+cd /opt/plutsgrip-app/plutsgrip-api
 source venv/bin/activate
 python -c "from app.core.database import engine; print('Conexão OK')"
 
@@ -402,7 +468,7 @@ systemctl status plutusgrip-api
 journalctl -u plutusgrip-api.service -n 50
 
 # Tentar iniciar manualmente
-cd /opt/plutusgrip-api
+cd /opt/plutsgrip-app/plutsgrip-api
 source venv/bin/activate
 uvicorn main:app --host 0.0.0.0 --port 8000
 # Ver o erro que aparece
@@ -420,16 +486,20 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 
 ```bash
 # Verificar se os arquivos existem
-ls -la /opt/plutusgrip-frontend/dist/
+ls -la /opt/plutsgrip-app/plutsgrip-frond-refac/dist/
 
 # Verificar permissões
-chown -R plutusgrip:plutusgrip /opt/plutusgrip-frontend/dist/
+chown -R plutusgrip:plutusgrip /opt/plutsgrip-app/plutsgrip-frond-refac/dist/
 
 # Ver logs do Nginx
 tail -f /var/log/nginx/plutusgrip-error.log
 
 # Testar Nginx
 nginx -t
+
+# Verificar path correto no nginx
+cat /etc/nginx/sites-enabled/plutusgrip | grep "root /opt"
+# Deve mostrar: root /opt/plutsgrip-app/plutsgrip-frond-refac/dist;
 ```
 
 ---
@@ -457,10 +527,10 @@ alembic upgrade head
 
 ```bash
 # Verificar .env
-cat /opt/plutusgrip-api/.env | grep DATABASE_URL
+cat /opt/plutsgrip-app/plutsgrip-api/.env | grep DATABASE_URL
 
 # Testar conexão direta
-cd /opt/plutusgrip-api
+cd /opt/plutsgrip-app/plutsgrip-api
 source venv/bin/activate
 python << EOF
 from sqlalchemy import create_engine
@@ -551,7 +621,8 @@ pg_dump "postgresql://user:pass@host/db?sslmode=require" > backup_$(date +%Y%m%d
 ```bash
 # Fazer backup de arquivos importantes
 mkdir -p ~/backups
-cp /opt/plutusgrip-api/.env ~/backups/env_$(date +%Y%m%d)
+cp /opt/plutsgrip-app/plutsgrip-api/.env ~/backups/env_$(date +%Y%m%d)
+cp /opt/plutsgrip-app/plutsgrip-frond-refac/.env.production ~/backups/env_frontend_$(date +%Y%m%d)
 cp /etc/nginx/sites-available/plutusgrip ~/backups/nginx_$(date +%Y%m%d)
 cp /etc/systemd/system/plutusgrip-api.service ~/backups/systemd_$(date +%Y%m%d)
 ```
@@ -593,5 +664,11 @@ Antes de fazer um deploy, verifique:
 ---
 
 **Última Atualização:** 2026-01-07
-**Versão do Deploy:** 1.0.0
+**Versão do Deploy:** 2.0.0 (Repositório Unificado)
 **Mantido por:** Paulo Junior (paulodjunior.dev@gmail.com)
+
+**Changelog v2.0.0:**
+- ✅ Migração para repositório unificado em `/opt/plutsgrip-app`
+- ✅ Simplificação dos comandos de atualização
+- ✅ Documentação toda em português brasileiro
+- ✅ Um único `git pull` para atualizar tudo
