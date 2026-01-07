@@ -9,6 +9,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
@@ -46,7 +47,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
     op.create_table('categories',
     sa.Column('name', sa.String(length=100), nullable=False),
-    sa.Column('type', sa.Enum('INCOME', 'EXPENSE', name='transactiontype', create_type=False), nullable=False),
+    sa.Column('type', postgresql.ENUM('INCOME', 'EXPENSE', name='transactiontype', create_type=False), nullable=False),
     sa.Column('color', sa.String(length=7), nullable=True),
     sa.Column('icon', sa.String(length=50), nullable=True),
     sa.Column('is_default', sa.Boolean(), nullable=False),
@@ -70,7 +71,7 @@ def upgrade() -> None:
     sa.Column('amount', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.Column('currency', sa.String(length=3), nullable=True),
     sa.Column('date', sa.Date(), nullable=False),
-    sa.Column('type', sa.Enum('INCOME', 'EXPENSE', name='transactiontype', create_type=False), nullable=False),
+    sa.Column('type', postgresql.ENUM('INCOME', 'EXPENSE', name='transactiontype', create_type=False), nullable=False),
     sa.Column('notes', sa.Text(), nullable=True),
     sa.Column('tags', sa.String(length=255), nullable=True),
     sa.Column('is_recurring', sa.Boolean(), nullable=False),

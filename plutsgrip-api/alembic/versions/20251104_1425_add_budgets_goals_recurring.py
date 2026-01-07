@@ -9,6 +9,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
@@ -42,7 +43,7 @@ def upgrade() -> None:
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('category_id', sa.Integer(), nullable=False),
     sa.Column('amount', sa.Numeric(precision=10, scale=2), nullable=False),
-    sa.Column('period', sa.Enum('MONTHLY', 'QUARTERLY', 'YEARLY', name='budgetperiod', create_type=False), nullable=False),
+    sa.Column('period', postgresql.ENUM('MONTHLY', 'QUARTERLY', 'YEARLY', name='budgetperiod', create_type=False), nullable=False),
     sa.Column('start_date', sa.DateTime(), nullable=False),
     sa.Column('notifications_enabled', sa.Integer(), nullable=True),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
@@ -81,9 +82,9 @@ def upgrade() -> None:
     sa.Column('description', sa.String(length=255), nullable=False),
     sa.Column('amount', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.Column('currency', sa.String(length=3), nullable=True),
-    sa.Column('type', sa.Enum('INCOME', 'EXPENSE', name='transactiontype', create_type=False), nullable=False),
+    sa.Column('type', postgresql.ENUM('INCOME', 'EXPENSE', name='transactiontype', create_type=False), nullable=False),
     sa.Column('category_id', sa.Integer(), nullable=True),
-    sa.Column('frequency', sa.Enum('DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY', name='recurrencefrequency', create_type=False), nullable=False),
+    sa.Column('frequency', postgresql.ENUM('DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY', name='recurrencefrequency', create_type=False), nullable=False),
     sa.Column('start_date', sa.Date(), nullable=False),
     sa.Column('end_date', sa.Date(), nullable=True),
     sa.Column('next_execution_date', sa.Date(), nullable=False),
