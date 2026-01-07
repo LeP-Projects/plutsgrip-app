@@ -39,6 +39,7 @@ export function Calendar({
   return (
     <CalendarUI
       {...props}
+      mode="single"
       locale={systemLocale}
       captionLayout="dropdown"
     />

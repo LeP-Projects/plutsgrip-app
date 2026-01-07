@@ -69,6 +69,7 @@ interface ExpenseFormProps {
 
 export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
   const [date, setDate] = useState<Date>()
+  const [calendarOpen, setCalendarOpen] = useState(false)
   const { currency } = useCurrency()
 
   // Busca categorias da API
@@ -223,7 +224,7 @@ export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
               <Label>
                 {t.date} {t.required}
               </Label>
-              <Popover>
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -242,6 +243,7 @@ export function ExpenseForm({ language, defaultType }: ExpenseFormProps) {
                     selected={date}
                     onSelect={(selectedDate: Date | undefined) => {
                       setDate(selectedDate)
+                      setCalendarOpen(false) // Close after selection
                       if (errors.date) {
                         setErrors((prev) => ({ ...prev, date: false }))
                       }

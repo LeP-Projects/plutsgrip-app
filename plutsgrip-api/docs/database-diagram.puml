@@ -272,7 +272,7 @@ TABLE(user_preferences) <<System>> <<Future>> {
     FK(NOT_NULL(user_id)): INTEGER
     default_currency: VARCHAR(3) = 'BRL'
     date_format: VARCHAR(20) = 'YYYY-MM-DD'
-    number_format: VARCHAR(20) = 'en-US'
+    number_format: VARCHAR(20) = 'pt-BR'
     theme: VARCHAR(20) = 'light'
     notifications_enabled: BOOLEAN = TRUE
     email_notifications: BOOLEAN = TRUE

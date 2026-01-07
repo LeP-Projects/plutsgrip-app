@@ -19,7 +19,6 @@ import {
   FileText,
   Menu,
   X,
-  Coins,
   LogOut,
 } from "lucide-react"
 import { ExpenseChart } from "@/components/ExpenseChart"
@@ -151,31 +150,31 @@ export function Dashboard() {
   // Calcula percentuais de mudança comparando mês atual com anterior
   const balanceChangePercent = trendsData && trendsData.balance?.length >= 2
     ? calculatePercentageChange(
-        trendsData.balance[trendsData.balance.length - 1]?.value || 0,
-        trendsData.balance[trendsData.balance.length - 2]?.value || 0
-      )
+      trendsData.balance[trendsData.balance.length - 1]?.value || 0,
+      trendsData.balance[trendsData.balance.length - 2]?.value || 0
+    )
     : 0
 
   const expenseChangePercent = trendsData && trendsData.expense?.length >= 2
     ? calculatePercentageChange(
-        trendsData.expense[trendsData.expense.length - 1]?.value || 0,
-        trendsData.expense[trendsData.expense.length - 2]?.value || 0
-      )
+      trendsData.expense[trendsData.expense.length - 1]?.value || 0,
+      trendsData.expense[trendsData.expense.length - 2]?.value || 0
+    )
     : 0
 
   const incomeChangePercent = trendsData && trendsData.income?.length >= 2
     ? calculatePercentageChange(
-        trendsData.income[trendsData.income.length - 1]?.value || 0,
-        trendsData.income[trendsData.income.length - 2]?.value || 0
-      )
+      trendsData.income[trendsData.income.length - 1]?.value || 0,
+      trendsData.income[trendsData.income.length - 2]?.value || 0
+    )
     : 0
 
   // Calcula percentual de uso de orçamento
   const budgetUsagePercent = budgetsData && budgetsData.length > 0
     ? (budgetsData.reduce((total, budget) => total + (budget.amount || 0), 0) > 0
-        ? (dashboardData?.total_expense || 0) /
-          (budgetsData.reduce((total, budget) => total + (budget.amount || 0), 0)) * 100
-        : 0)
+      ? (dashboardData?.total_expense || 0) /
+      (budgetsData.reduce((total, budget) => total + (budget.amount || 0), 0)) * 100
+      : 0)
     : 0
 
   // Usa dados da API ou valores padrão
@@ -254,7 +253,7 @@ export function Dashboard() {
       >
         <div className="p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Coins className="h-8 w-8 text-primary" />
+            <img src="/plutus.png" alt="PlutusGrip" className="h-8 w-8 object-contain" />
             <div>
               <h1 className="text-2xl font-serif font-bold text-sidebar-foreground">PlutusGrip</h1>
               <p className="text-sm text-sidebar-foreground/70 mt-1">{t.personalExpenseManagement}</p>
@@ -366,10 +365,10 @@ export function Dashboard() {
                     <h2 className="text-2xl sm:text-3xl font-serif font-bold text-foreground">{t.financialOverview}</h2>
                     <p className="text-sm sm:text-base text-muted-foreground">{t.trackExpenses}</p>
                   </div>
-                  <Button 
+                  <Button
                     className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
                     onClick={() => handleTabChange("transactions")}
-                    >
+                  >
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {t.addTransaction}
                   </Button>
@@ -483,11 +482,11 @@ export function Dashboard() {
 
               <TabsContent value="all" className="space-y-6">
                 <ExpenseForm language={language} />
-                <RecentTransactions 
-                  showAll 
-                  typeFilter="all" 
-                  language={language} 
-                  />
+                <RecentTransactions
+                  showAll
+                  typeFilter="all"
+                  language={language}
+                />
               </TabsContent>
 
               <TabsContent value="income" className="space-y-6">
