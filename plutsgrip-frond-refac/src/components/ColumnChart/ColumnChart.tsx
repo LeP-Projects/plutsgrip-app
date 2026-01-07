@@ -73,7 +73,7 @@ export function ColumnChart({ language, filters }: ColumnChartProps) {
     const monthlyData: { [key: string]: any } = {}
     filtered.forEach((transaction) => {
       const date = new Date(transaction.date)
-      const monthKey = date.toLocaleString("en-US", { month: "short" })
+      const monthKey = date.toLocaleString("pt-BR", { month: "short" })
 
       if (!monthlyData[monthKey]) {
         monthlyData[monthKey] = { month: monthKey, income: 0, expenses: 0 }

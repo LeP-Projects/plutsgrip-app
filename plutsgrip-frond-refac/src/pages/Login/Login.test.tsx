@@ -18,7 +18,7 @@ vi.mock('react-router-dom', async () => {
 // Mock navigator.language
 Object.defineProperty(window.navigator, 'language', {
   writable: true,
-  value: 'en-US',
+  value: 'pt-BR',
 })
 
 describe('Login Integration Tests', () => {

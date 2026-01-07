@@ -64,7 +64,7 @@ export function IncomeChart({ language, filters }: IncomeChartProps) {
     const monthlyData: { [key: string]: any } = {}
     filtered.forEach((transaction) => {
       const date = new Date(transaction.date)
-      const monthKey = date.toLocaleString("en-US", { month: "short" })
+      const monthKey = date.toLocaleString("pt-BR", { month: "short" })
 
       if (!monthlyData[monthKey]) {
         monthlyData[monthKey] = { month: monthKey, income: 0 }
