@@ -77,15 +77,13 @@ async def seed_default_categories() -> None:
 
     async with AsyncSessionLocal() as session:
         try:
-            # Check if default categories already exist
-            result = await session.execute(
-                select(Category).where(Category.is_default == True).limit(1)
+            # Delete existing default categories to ensure fresh seed with updated names
+            from sqlalchemy import delete
+            await session.execute(
+                delete(Category).where(Category.is_default == True)
             )
-            existing = result.scalars().first()
-
-            if existing:
-                print("Default categories already exist, skipping seed")
-                return
+            await session.commit()
+            print("Cleared existing default categories")
 
             # Default categories
             default_categories = [
