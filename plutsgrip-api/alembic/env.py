@@ -30,7 +30,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Override sqlalchemy.url with the one from settings
-database_url = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+database_url = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://").replace("sslmode=", "ssl=")
 config.set_main_option("sqlalchemy.url", database_url)
 
 # Add your model's MetaData object here for 'autogenerate' support
