@@ -21,8 +21,7 @@ import {
   X,
   LogOut,
 } from "lucide-react"
-import { ExpenseChart } from "@/components/ExpenseChart"
-import { IncomeChart } from "@/components/IncomeChart"
+
 import { CategoryChart } from "@/components/CategoryChart"
 import { RecentTransactions } from "@/components/RecentTransactions"
 import { ExpenseForm } from "@/components/ExpenseForm"
@@ -455,10 +454,7 @@ export function Dashboard() {
                   </Card>
                 </div>
 
-                <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
-                  <ExpenseChart language={language} filters={dashboardFilters} />
-                  <IncomeChart language={language} filters={dashboardFilters} />
-                </div>
+
 
                 <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
                   <CategoryChart language={language} filters={dashboardFilters} />
