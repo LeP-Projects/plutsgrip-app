@@ -136,12 +136,17 @@ export function RecentTransactions({
     [showAll, typeFilter, refreshKey]
   )
 
+  const fetchCategories = useCallback(() => apiService.listCategories(), [])
+
   const { data: transactionsData, loading: transactionsLoading } = useApi(
     fetchTransactions,
     true // fetch immediately
   )
 
+  const { data: categoriesData } = useApi(fetchCategories, true)
+
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [allCategories, setAllCategories] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [internalTypeFilter, setInternalTypeFilter] = useState("all")
@@ -155,6 +160,13 @@ export function RecentTransactions({
       setTransactions(transactionsData.transactions)
     }
   }, [transactionsData])
+
+  // Atualiza categorias quando dados da API chegam
+  useEffect(() => {
+    if (categoriesData?.categories) {
+      setAllCategories(categoriesData.categories.map((c: any) => c.name))
+    }
+  }, [categoriesData])
 
   const t = translations[language as keyof typeof translations]
 
@@ -182,7 +194,8 @@ export function RecentTransactions({
     const matchesCategory = categoryFilter === "all" || transaction.category?.name === categoryFilter
 
     const effectiveTypeFilter = typeFilter !== "all" ? typeFilter : internalTypeFilter
-    const matchesType = effectiveTypeFilter === "all" || transaction.type === effectiveTypeFilter
+    // Case insensitive check for type
+    const matchesType = effectiveTypeFilter === "all" || transaction.type?.toLowerCase() === effectiveTypeFilter.toLowerCase()
 
     const matchesDate = !dateFilter || transaction.date === format(dateFilter, "yyyy-MM-dd")
 
@@ -190,7 +203,11 @@ export function RecentTransactions({
   })
 
   const displayTransactions = showAll ? filteredTransactions : filteredTransactions.slice(0, 5)
-  const categories = Array.from(new Set(transactions.map((t) => t.category?.name).filter(Boolean)))
+  // Use all categories for filter if available, otherwise fallback to existing logic or keep separate
+  // The original code used categories from visible transactions for the filter dropdown.
+  // We can keep that or use allCategories for the filter too. Let's stick to unique categories from transactions for the FILTER (common pattern),
+  // but use ALL categories for the EDIT modal.
+  const filterCategories = Array.from(new Set(transactions.map((t) => t.category?.name).filter(Boolean)))
 
   return (
     <Card>
@@ -237,7 +254,7 @@ export function RecentTransactions({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t.allCategories}</SelectItem>
-                  {categories.map((category) => (
+                  {filterCategories.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
                     </SelectItem>
@@ -263,79 +280,82 @@ export function RecentTransactions({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {displayTransactions.map((transaction) => (
-            <div
-              key={transaction.id}
-              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground truncate">{transaction.description}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(transaction.date).toLocaleDateString()} • {transaction.category?.name || "Uncategorized"}
-                    </p>
-                    {transaction.notes && (
-                      <p className="text-xs text-muted-foreground mt-1 italic line-clamp-2">
-                        {t.notes}: {transaction.notes}
+          {displayTransactions.map((transaction) => {
+            const isExpense = transaction.type?.toLowerCase() === "expense"
+            return (
+              <div
+                key={transaction.id}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground truncate">{transaction.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(transaction.date).toLocaleDateString()} • {transaction.category?.name || "Uncategorized"}
                       </p>
-                    )}
+                      {transaction.notes && (
+                        <p className="text-xs text-muted-foreground mt-1 italic line-clamp-2">
+                          {t.notes}: {transaction.notes}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between sm:justify-end gap-3">
-                <div className="text-left sm:text-right">
-                  <p
-                    className={`font-semibold text-base sm:text-lg ${transaction.type === "expense" ? "text-destructive" : "text-green-600"
-                      }`}
-                  >
-                    {transaction.type === "expense" ? "-" : "+"}${transaction.amount.toFixed(2)}
-                  </p>
-                  <Badge variant={transaction.type === "expense" ? "destructive" : "default"} className="text-xs mt-1">
-                    {transaction.type === "expense" ? t.saida : t.entrada}
-                  </Badge>
-                </div>
+                <div className="flex items-center justify-between sm:justify-end gap-3">
+                  <div className="text-left sm:text-right">
+                    <p
+                      className={`font-semibold text-base sm:text-lg ${isExpense ? "text-destructive" : "text-green-600"
+                        }`}
+                    >
+                      {isExpense ? "-" : "+"}${transaction.amount.toFixed(2)}
+                    </p>
+                    <Badge variant={isExpense ? "destructive" : "default"} className="text-xs mt-1">
+                      {isExpense ? t.saida : t.entrada}
+                    </Badge>
+                  </div>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleEditTransaction(transaction)}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      {t.edit}
-                    </DropdownMenuItem>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          {t.delete}
-                        </DropdownMenuItem>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>{t.deleteTransaction}</AlertDialogTitle>
-                          <AlertDialogDescription>{t.deleteTransactionDesc}</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDeleteTransaction(transaction.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleEditTransaction(transaction)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        {t.edit}
+                      </DropdownMenuItem>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" />
                             {t.delete}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                          </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>{t.deleteTransaction}</AlertDialogTitle>
+                            <AlertDialogDescription>{t.deleteTransactionDesc}</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteTransaction(transaction.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              {t.delete}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
 
           {displayTransactions.length === 0 && showAll && (
             <div className="text-center py-8 text-muted-foreground">{t.noTransactions}</div>
@@ -367,7 +387,10 @@ export function RecentTransactions({
                   ...editingTransaction,
                   description: formData.get("description") as string,
                   amount: Number.parseFloat(formData.get("amount") as string),
-                  category: formData.get("category") as string,
+                  category: {
+                    ...editingTransaction.category!,
+                    name: formData.get("category") as string
+                  },
                   type: formData.get("type") as "income" | "expense",
                   notes: formData.get("notes") as string,
                 }
@@ -401,12 +424,13 @@ export function RecentTransactions({
                   <Label htmlFor="category">
                     {t.category} {t.required}
                   </Label>
+                  {/* Using allCategories for the edit modal options */}
                   <Select name="category" defaultValue={editingTransaction.category?.name} required>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((categoryName) => (
+                      {(allCategories.length > 0 ? allCategories : filterCategories).map((categoryName) => (
                         <SelectItem key={categoryName} value={categoryName}>
                           {categoryName}
                         </SelectItem>
@@ -418,7 +442,8 @@ export function RecentTransactions({
                   <Label htmlFor="type">
                     {t.type} {t.required}
                   </Label>
-                  <Select name="type" defaultValue={editingTransaction.type} required>
+                  {/* Normalized type for default value */}
+                  <Select name="type" defaultValue={editingTransaction.type?.toLowerCase()} required>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
