@@ -4,8 +4,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Filter, RotateCcw, Download, FileText, FileSpreadsheet } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover"
 import { Calendar } from "@/components/Calendar"
-import { ExpenseChart } from "@/components/ExpenseChart"
-import { IncomeChart } from "@/components/IncomeChart"
+// import { ExpenseChart } from "@/components/ExpenseChart" // Removed per user request
+// import { IncomeChart } from "@/components/IncomeChart" // Removed per user request
 import { CategoryChart } from "@/components/CategoryChart"
 import { ColumnChart } from "@/components/ColumnChart"
 import { generatePDFReport, generateExcelReport } from "@/utils/export-utils"
@@ -319,10 +319,11 @@ export function ReportsSection({ language }: ReportsSectionProps) {
 
       {/* Charts Section */}
       <div className="grid gap-4 sm:gap-6">
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
+        {/* Monthly Trends removed per user request */}
+        {/* <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
           <ExpenseChart language={language} filters={filters} />
           <IncomeChart language={language} filters={filters} />
-        </div>
+        </div> */}
         <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
           <CategoryChart language={language} filters={filters} />
           <ColumnChart language={language} filters={filters} />
