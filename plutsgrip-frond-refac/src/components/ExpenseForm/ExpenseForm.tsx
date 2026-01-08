@@ -253,7 +253,6 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
                       }
                     }}
                     initialFocus
-                    className="[--cell-size:1.75rem] md:[--cell-size:2.5rem]"
                   />
                 </PopoverContent>
               </Popover>
