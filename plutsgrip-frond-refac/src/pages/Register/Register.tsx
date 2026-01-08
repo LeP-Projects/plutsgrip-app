@@ -156,7 +156,7 @@ export function RegisterPage() {
       },
       {
         label: t.hasSpecialChar,
-        met: /[@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+        met: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/.test(password),
       },
     ]
     setPasswordRequirements(requirements)

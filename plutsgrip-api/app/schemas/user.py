@@ -36,8 +36,8 @@ class UserRegisterRequest(BaseModel):
         if not re.search(r'\d', v):
             raise ValueError('Password must contain at least one digit')
 
-        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
-            raise ValueError('Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)')
+        if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>/?~]", v):
+            raise ValueError('Password must contain at least one special character')
 
         return v
 
