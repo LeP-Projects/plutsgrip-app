@@ -29,16 +29,7 @@ ChartContainer.displayName = "ChartContainer"
 // Chart tooltip component
 const ChartTooltip = RechartsPrimitive.Tooltip
 
-const ChartTooltipContent = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<typeof RechartsPrimitive.Tooltip> & {
-    hideLabel?: boolean
-    hideIndicator?: boolean
-    indicator?: "line" | "dot" | "dashed"
-    nameKey?: string
-    labelKey?: string
-  }
->(
+const ChartTooltipContent = React.forwardRef<HTMLDivElement, any>(
   (
     {
       active,
@@ -88,8 +79,8 @@ const ChartTooltipContent = React.forwardRef<
         {tooltipLabel ? <p className={cn("font-medium", labelClassName)}>{tooltipLabel}</p> : null}
         <div className="grid gap-1.5">
           {payload.map((item: any, index: number) => {
-            const key = `${nameKey || item.name || item.dataKey || "value"}`
-            const itemConfig = item.payload
+            const _key = `${nameKey || item.name || item.dataKey || "value"}`
+            const _itemConfig = item.payload
             const indicatorColor = color || item.payload?.fill || item.color
 
             return (

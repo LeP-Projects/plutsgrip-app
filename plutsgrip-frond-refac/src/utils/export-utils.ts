@@ -32,7 +32,7 @@ interface Transaction {
   description: string
   amount: number
   date: string
-  category?: Category
+  category?: Category | string // Allow string for mock data
   type: "expense" | "income"
   notes?: string
 }
@@ -169,7 +169,8 @@ const mockTransactions: Transaction[] = [
 function filterTransactions(transactions: Transaction[], filters: ReportFilters): Transaction[] {
   return transactions.filter((transaction) => {
     // Category filter
-    if (filters.category !== "all" && transaction.category?.name !== filters.category) {
+    const categoryName = typeof transaction.category === 'string' ? transaction.category : transaction.category?.name
+    if (filters.category !== "all" && categoryName !== filters.category) {
       return false
     }
 
@@ -258,14 +259,12 @@ export function generatePDFReport(filters: ReportFilters, language: string) {
         <p><strong>${t.filters}:</strong></p>
         <ul>
           <li><strong>${t.category}:</strong> ${filters.category === "all" ? t.allCategories : filters.category}</li>
-          <li><strong>${t.type}:</strong> ${
-            filters.type === "all" ? t.allTypes : filters.type === "expense" ? t.expensesOnly : t.incomeOnly
-          }</li>
-          <li><strong>Período:</strong> ${
-            filters.timeRange === "custom" && filters.startDate && filters.endDate
-              ? `${format(filters.startDate, "PP")} - ${format(filters.endDate, "PP")}`
-              : t[filters.timeRange as keyof typeof t] || filters.timeRange
-          }</li>
+          <li><strong>${t.type}:</strong> ${filters.type === "all" ? t.allTypes : filters.type === "expense" ? t.expensesOnly : t.incomeOnly
+    }</li>
+          <li><strong>Período:</strong> ${filters.timeRange === "custom" && filters.startDate && filters.endDate
+      ? `${format(filters.startDate, "PP")} - ${format(filters.endDate, "PP")}`
+      : t[filters.timeRange as keyof typeof t] || filters.timeRange
+    }</li>
         </ul>
       </div>
 
@@ -302,12 +301,12 @@ export function generatePDFReport(filters: ReportFilters, language: string) {
           </thead>
           <tbody>
             ${filteredTransactions
-              .map(
-                (transaction) => `
+      .map(
+        (transaction) => `
               <tr>
                 <td>${format(new Date(transaction.date), "PP")}</td>
                 <td>${escapeHtml(transaction.description)}</td>
-                <td>${escapeHtml(transaction.category?.name || "Uncategorized")}</td>
+                <td>${escapeHtml((typeof transaction.category === 'string' ? transaction.category : transaction.category?.name) || "Uncategorized")}</td>
                 <td>${transaction.type === "income" ? t.income : t.expense}</td>
                 <td class="amount-${transaction.type}">
                   ${transaction.type === "expense" ? "-" : "+"}$${transaction.amount.toFixed(2)}
@@ -315,8 +314,8 @@ export function generatePDFReport(filters: ReportFilters, language: string) {
                 <td class="notes">${transaction.notes ? escapeHtml(transaction.notes) : "-"}</td>
               </tr>
             `,
-              )
-              .join("")}
+      )
+      .join("")}
           </tbody>
         </table>
       </div>
@@ -351,10 +350,9 @@ export function generateExcelReport(filters: ReportFilters, language: string) {
     `${t.filters}:`,
     `${t.category}: ${filters.category === "all" ? t.allCategories : filters.category}`,
     `${t.type}: ${filters.type === "all" ? t.allTypes : filters.type === "expense" ? t.expensesOnly : t.incomeOnly}`,
-    `Período: ${
-      filters.timeRange === "custom" && filters.startDate && filters.endDate
-        ? `${format(filters.startDate, "PP")} - ${format(filters.endDate, "PP")}`
-        : t[filters.timeRange as keyof typeof t] || filters.timeRange
+    `Período: ${filters.timeRange === "custom" && filters.startDate && filters.endDate
+      ? `${format(filters.startDate, "PP")} - ${format(filters.endDate, "PP")}`
+      : t[filters.timeRange as keyof typeof t] || filters.timeRange
     }`,
     "",
     // Summary
@@ -368,10 +366,8 @@ export function generateExcelReport(filters: ReportFilters, language: string) {
     // Transaction data
     ...filteredTransactions.map(
       (transaction) =>
-        `${format(new Date(transaction.date), "PP")},"${transaction.description}","${transaction.category?.name || "Uncategorized"}","${
-          transaction.type === "income" ? t.income : t.expense
-        }","${transaction.type === "expense" ? "-" : "+"}$${transaction.amount.toFixed(2)}","${
-          transaction.notes || ""
+        `${format(new Date(transaction.date), "PP")},"${transaction.description}","${(typeof transaction.category === 'string' ? transaction.category : transaction.category?.name) || "Uncategorized"}","${transaction.type === "income" ? t.income : t.expense
+        }","${transaction.type === "expense" ? "-" : "+"}$${transaction.amount.toFixed(2)}","${transaction.notes || ""
         }"`,
     ),
   ].join("\n")

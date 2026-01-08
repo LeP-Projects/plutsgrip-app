@@ -11,15 +11,4 @@ export {
   SelectValue,
 } from './Select'
 
-export type {
-  SelectProps,
-  SelectGroupProps,
-  SelectValueProps,
-  SelectTriggerProps,
-  SelectContentProps,
-  SelectLabelProps,
-  SelectItemProps,
-  SelectSeparatorProps,
-  SelectScrollUpButtonProps,
-  SelectScrollDownButtonProps,
-} from './Select.types'
+

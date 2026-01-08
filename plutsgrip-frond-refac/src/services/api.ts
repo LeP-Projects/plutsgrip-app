@@ -278,25 +278,29 @@ class ApiService {
   /**
    * Realiza uma requisição HTTP
    */
+  private _initialized: boolean = false;
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     }
 
     // Adiciona token de autenticação se disponível
     if (this.accessToken && endpoint !== "/auth/login" && endpoint !== "/auth/register") {
-      headers.Authorization = `Bearer ${this.accessToken}`
+      headers["Authorization"] = `Bearer ${this.accessToken}`
     }
 
     const response = await fetch(url, {
       ...options,
       headers,
     })
+
+
 
     // Se receber 401, tenta refresh token
     if (response.status === 401 && this.refreshToken && endpoint !== "/auth/refresh") {
@@ -385,11 +389,12 @@ class ApiService {
   /**
    * Registra um novo usuário
    */
-  async register(data: RegisterRequest): Promise<User> {
-    const response = await this.request<User>("/auth/register", {
+  async register(data: RegisterRequest): Promise<LoginResponse> {
+    const response = await this.request<LoginResponse>("/auth/register", {
       method: "POST",
       body: JSON.stringify(data),
     })
+    this.setTokens(response.access_token, response.refresh_token)
     return response
   }
 
