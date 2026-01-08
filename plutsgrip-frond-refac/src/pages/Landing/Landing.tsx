@@ -57,7 +57,7 @@ const translations: Record<string, LandingPageTranslations> = {
       "Lightning-fast interface with seamless synchronization. Access your finances anytime, anywhere on any device.",
     ctaTitle: "Ready to Transform Your Finances?",
     ctaDescription: "Start for free today and take the first step towards financial freedom.",
-    footer: "© 2025 PlutusGrip. All rights reserved.",
+    footer: "© 2026 PlutusGrip. All rights reserved.",
   },
   pt: {
     appName: "PlutusGrip",
@@ -87,7 +87,7 @@ const translations: Record<string, LandingPageTranslations> = {
       "Interface ultrarrápida com sincronização contínua. Acesse suas finanças a qualquer hora, em qualquer lugar em qualquer dispositivo.",
     ctaTitle: "Pronto para Transformar Suas Finanças?",
     ctaDescription: "Comece gratuitamente hoje e dê o primeiro passo em direção à liberdade financeira.",
-    footer: "© 2025 PlutusGrip. Todos os direitos reservados.",
+    footer: "© 2026 PlutusGrip. Todos os direitos reservados.",
   },
 }
 

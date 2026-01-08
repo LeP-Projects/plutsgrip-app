@@ -1,34 +1,36 @@
-# PlutusGrip Finance Tracker
+# PlutusGrip - Gerenciador de Finanças Pessoais
 
 <div align="center">
 
 ![PlutusGrip Logo](plutsgrip-frond-refac/public/plutus.png)
 
-**Sistema Moderno de Gestão Financeira Pessoal**
+**Controle total das suas finanças pessoais de forma simples, segura e poderosa**
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
-[![React](https://img.shields.io/badge/React-19.1.1-61DAFB.svg)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-3178C6.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19.1-61DAFB.svg)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Production-success.svg)](http://68.183.98.186)
 
-[Demo ao Vivo](http://68.183.98.186) • [Documentação](docs/INDEX.md) • [API Docs](http://68.183.98.186/api/docs) • [Reportar Bug](https://github.com/LeP-Projects/plutsgrip-app/issues)
+[Demo ao Vivo](http://68.183.98.186) • [Documentação](#-documentação) • [API Docs](http://68.183.98.186/api/docs) • [Reportar Bug](https://github.com/LeP-Projects/plutsgrip-app/issues)
 
 </div>
 
 ---
 
-## 📖 Índice
+## 📋 Índice
 
 - [Sobre](#-sobre)
-- [Funcionalidades](#-funcionalidades)
+- [Características](#-características)
 - [Demo ao Vivo](#-demo-ao-vivo)
-- [Stack Tecnológica](#-stack-tecnológica)
-- [Início Rápido](#-início-rápido)
+- [Começando](#-começando)
 - [Documentação](#-documentação)
+- [Tecnologias](#-tecnologias)
+- [Arquitetura](#-arquitetura)
 - [Estrutura do Projeto](#-estrutura-do-projeto)
 - [Desenvolvimento](#-desenvolvimento)
+- [Testes](#-testes)
 - [Deploy](#-deploy)
 - [Contribuindo](#-contribuindo)
 - [Licença](#-licença)
@@ -37,39 +39,70 @@
 
 ## 🎯 Sobre
 
-**PlutusGrip** é um sistema abrangente de gestão financeira pessoal que ajuda você a rastrear despesas, gerenciar orçamentos, definir metas financeiras e obter insights sobre seus hábitos de gastos através de painéis interativos e bonitos.
+**PlutusGrip** é uma aplicação moderna e completa para gerenciamento de finanças pessoais, oferecendo recursos poderosos para controle de despesas, planejamento de orçamentos, definição de metas financeiras e análise de gastos através de relatórios inteligentes.
 
 Construído com tecnologias modernas e implantado na **DigitalOcean** com **Neon PostgreSQL**, o PlutusGrip combina o poder das capacidades assíncronas do FastAPI com a UI responsiva do React para entregar uma experiência perfeita de rastreamento financeiro.
 
 ### Por que PlutusGrip?
 
-- 💰 **Controle Financeiro Completo** - Rastreie cada centavo com categorização detalhada
-- 📊 **Insights Visuais** - Gráficos e relatórios bonitos para entender suas finanças
-- 🎯 **Rastreamento de Metas** - Defina e monitore o progresso em direção a objetivos financeiros
-- 🔒 **Seguro e Privado** - Autenticação JWT com senhas criptografadas
-- 🌍 **Multi-Moeda** - Suporte para diferentes moedas
-- 📱 **Design Responsivo** - Funciona perfeitamente em desktop, tablet e mobile
+- **🔒 Seguro**: Autenticação JWT, criptografia bcrypt, proteção CORS, rate limiting
+- **⚡ Rápido**: Backend assíncrono (FastAPI), frontend otimizado (React + Vite)
+- **📊 Completo**: Transações, categorias, orçamentos, metas, relatórios e muito mais
+- **🎨 Moderno**: Interface responsiva com TailwindCSS e componentes acessíveis (Radix UI)
+- **🐳 Docker Ready**: Deploy simplificado com Docker Compose
+- **📱 Responsivo**: Funciona perfeitamente em desktop, tablet e mobile
+- **🌍 Multi-idioma**: Suporte para português e inglês
+- **💱 Multi-moeda**: Suporte para diferentes moedas com conversão automática
 
 ---
 
-## ✨ Funcionalidades
+## ✨ Características
 
-### Funcionalidades Principais
-- ✅ **Gestão de Transações** - Adicione, edite, delete e categorize transações
-- ✅ **Rastreamento de Orçamento** - Defina orçamentos mensais/trimestrais/anuais por categoria
-- ✅ **Metas Financeiras** - Acompanhe o progresso em direção às metas de economia
-- ✅ **Transações Recorrentes** - Automatize receitas/despesas regulares
-- ✅ **Categorias Personalizadas** - Crie categorias personalizadas com cores e ícones
-- ✅ **Relatórios e Analytics** - Painel com tendências, padrões e insights
+### Gerenciamento de Transações
+- ✅ Registro completo de receitas e despesas
+- ✅ Categorização flexível com ícones e cores personalizáveis
+- ✅ Busca e filtros avançados
+- ✅ Exportação para CSV
+- ✅ Notas e tags para organização
+
+### Orçamentos Inteligentes
+- ✅ Criação de orçamentos por categoria
+- ✅ Acompanhamento de progresso em tempo real
+- ✅ Alertas de gastos excessivos
+- ✅ Histórico de orçamentos
+
+### Metas Financeiras
+- ✅ Definição de objetivos financeiros
+- ✅ Acompanhamento de progresso
+- ✅ Prazo e valor alvo
+- ✅ Visualização de evolução
+
+### Transações Recorrentes
+- ✅ Automação de receitas e despesas fixas
+- ✅ Configuração de frequência (diária, semanal, mensal, anual)
+- ✅ Histórico de transações recorrentes
+
+### Relatórios e Análises
+- ✅ Dashboard com visão geral das finanças
+- ✅ Gráficos interativos de despesas por categoria
+- ✅ Evolução de saldo ao longo do tempo
+- ✅ Análise de tendências de gastos
+- ✅ Comparações período a período
+
+### Personalização
+- ✅ Tema claro/escuro
+- ✅ Seleção de idioma (PT/EN)
+- ✅ Escolha de moeda padrão
+- ✅ Categorias personalizadas com ícones
 
 ### Funcionalidades Técnicas
-- ✅ **Autenticação JWT** - Tokens de acesso e refresh seguros
-- ✅ **Banco de Dados Assíncrono** - Operações PostgreSQL assíncronas de alta performance
-- ✅ **Rate Limiting** - Proteção da API com suporte a whitelist de IPs
-- ✅ **Migrações Automáticas** - Migrações de banco de dados Alembic
-- ✅ **Type Safety** - Frontend 100% TypeScript
-- ✅ **Testes Abrangentes** - 130+ testes com alta cobertura
-- ✅ **Documentação da API** - Documentação Swagger/OpenAPI auto-gerada
+- ✅ Autenticação JWT com refresh tokens
+- ✅ Banco de dados assíncrono (PostgreSQL)
+- ✅ Rate limiting e proteção contra ataques
+- ✅ Migrações automáticas (Alembic)
+- ✅ Type safety (100% TypeScript no frontend)
+- ✅ Testes abrangentes (130+ testes)
+- ✅ Documentação API automática (Swagger/OpenAPI)
 
 ---
 
@@ -79,102 +112,165 @@ Construído com tecnologias modernas e implantado na **DigitalOcean** com **Neon
 
 **Endpoints da API:**
 - Health Check: http://68.183.98.186/api/health
-- Documentação da API: http://68.183.98.186/api/docs
-- API Interativa: http://68.183.98.186/api/redoc
+- Documentação Interativa: http://68.183.98.186/api/docs
+- API ReDoc: http://68.183.98.186/api/redoc
 
 ### Credenciais de Demo
 Crie sua própria conta - o registro está aberto!
 
 ---
 
-## 🛠️ Stack Tecnológica
-
-### Backend
-- **[FastAPI](https://fastapi.tiangolo.com/)** - Framework web Python assíncrono moderno
-- **[SQLAlchemy 2.0](https://www.sqlalchemy.org/)** - ORM assíncrono
-- **[Pydantic v2](https://docs.pydantic.dev/)** - Validação de dados
-- **[Neon PostgreSQL](https://neon.tech/)** - Postgres Serverless (Produção)
-- **[Alembic](https://alembic.sqlalchemy.org/)** - Migrações de banco de dados
-- **[JWT](https://jwt.io/)** - Autenticação segura
-- **[Pytest](https://pytest.org/)** - Framework de testes
-
-### Frontend
-- **[React 19](https://react.dev/)** - Biblioteca de UI
-- **[TypeScript 5.9](https://www.typescriptlang.org/)** - Type safety
-- **[Vite 5](https://vitejs.dev/)** - Ferramenta de build e dev server
-- **[TailwindCSS 4](https://tailwindcss.com/)** - CSS utility-first
-- **[Radix UI](https://www.radix-ui.com/)** - Componentes acessíveis
-- **[Recharts](https://recharts.org/)** - Gráficos e visualizações
-- **[Vitest](https://vitest.dev/)** - Testes unitários
-- **[Playwright](https://playwright.dev/)** - Testes E2E
-
-### Infraestrutura
-- **[DigitalOcean](https://www.digitalocean.com/)** - Hospedagem VPS (Droplet)
-- **[Nginx](https://nginx.org/)** - Proxy reverso e arquivos estáticos
-- **[Systemd](https://systemd.io/)** - Gerenciamento de serviços
-- **[Docker](https://www.docker.com/)** - Containerização (ambiente dev)
-- **[GitHub Actions](https://github.com/features/actions)** - CI/CD (planejado)
-
----
-
-## 🚀 Início Rápido
+## 🚀 Começando
 
 ### Pré-requisitos
 
-Escolha uma das seguintes configurações:
+- **Docker** 20.10+ e **Docker Compose** 3.9+ ([Instalar Docker](https://docs.docker.com/get-docker/))
+- **Git** para clonar o repositório
 
-#### Opção A: Docker (Recomendado para Desenvolvimento)
-- Docker & Docker Compose 3.9+
-- Git
-
-#### Opção B: Configuração Local
-- Python 3.11+
-- Node.js 20+
-- PostgreSQL 15+ (ou use Neon)
-
-### Desenvolvimento com Docker
+### Instalação Rápida
 
 ```bash
-# 1. Clone o repositório
+# Clone o repositório
 git clone https://github.com/LeP-Projects/plutsgrip-app.git
 cd plutsgrip-app
 
-# 2. Inicie os serviços
+# Inicie o ambiente de desenvolvimento
 make up
-# Ou: docker-compose -f docker-compose.dev.yml up
 
-# 3. Acesse a aplicação
-# Frontend: http://localhost:5173
-# Backend API: http://localhost:8000
-# API Docs: http://localhost:8000/docs
+# Ou usando o script de gerenciamento
+./docker-manage.sh up dev     # Linux/Mac
+docker-manage.bat up dev       # Windows
+
+# Ou usando docker-compose diretamente
+docker compose --profile dev --env-file .env.dev up -d
 ```
 
-### Configuração de Desenvolvimento Local
+### Acesso
 
-Veja instruções detalhadas em:
-- **Backend:** [docs/BACKEND.md](docs/BACKEND.md)
-- **Frontend:** [docs/FRONTEND.md](docs/FRONTEND.md)
+Após iniciar os containers, acesse:
+
+- **Frontend**: http://localhost:5173
+- **API**: http://localhost:8000
+- **Documentação API**: http://localhost:8000/docs
+- **pgAdmin** (dev): http://localhost:5050
+- **PostgreSQL** (dev): localhost:5432
+
+### Primeiros Passos
+
+1. Acesse http://localhost:5173
+2. Clique em "Criar Conta"
+3. Preencha seus dados e faça login
+4. Comece a registrar suas transações!
+
+Para instruções detalhadas, consulte o [Guia de Setup](docs/setup.md).
 
 ---
 
 ## 📚 Documentação
 
-### Começando
-- **[Hub de Documentação](docs/INDEX.md)** - Hub completo de documentação
-- **[Guia do Backend](docs/BACKEND.md)** - Configuração, arquitetura e referência da API do backend
-- **[Guia do Frontend](docs/FRONTEND.md)** - Configuração, componentes e estrutura do frontend
-- **[Guia de Deploy](DEPLOY_GUIDE.md)** - Deploy em produção na DigitalOcean
+> **📖 Veja o [Guia de Organização da Documentação](GUIA_ORGANIZACAO.md)** para entender como toda a documentação está estruturada.
 
-### Desenvolvimento
-- **[Guia de Configuração](SETUP.md)** - Configuração detalhada para todos os ambientes
-- **[Guia de Contribuição](CONTRIBUTING.md)** - Como contribuir com o projeto
-- **[Configuração Docker](DOCKER_README.md)** - Ambiente de desenvolvimento Docker
+### 📂 Documentação Geral (Root)
 
-### Referência
-- **[Endpoints da API](docs/03-API-ENDPOINTS.md)** - Referência completa da API
-- **[Schema do Banco de Dados](docs/04-DATABASE.md)** - Estrutura e migrações do banco
-- **[Autenticação](docs/05-AUTHENTICATION.md)** - Fluxo de autenticação JWT
-- **[Testes](docs/08-TESTING.md)** - Estratégias e cobertura de testes
+Documentação sobre o projeto como um todo, setup e deploy:
+
+- **[Guia de Setup](docs/setup.md)** - Instalação completa (dev e produção)
+- **[Guia de Contribuição](docs/contribuindo.md)** - Como contribuir com o projeto
+- **[Docker](docs/docker.md)** - Guia completo do Docker
+- **[Migração Docker](docs/migracao-docker.md)** - Guia de migração
+- **[Deploy em Produção](docs/deploy-producao.md)** - Checklist completo
+
+### 🔌 Documentação do Backend
+
+Documentação técnica da API FastAPI:
+
+- **[README Backend](plutsgrip-api/README.md)** - Visão geral do backend
+- **[Arquitetura](plutsgrip-api/docs/arquitetura.md)** - Estrutura e padrões
+- **[Endpoints da API](plutsgrip-api/docs/endpoints-api.md)** - Referência completa
+- **[Autenticação](plutsgrip-api/docs/autenticacao.md)** - Sistema de autenticação JWT
+- **[Banco de Dados](plutsgrip-api/docs/banco-dados.md)** - Schema e migrations
+- **[Guia de Setup](plutsgrip-api/docs/guia-setup.md)** - Configuração do backend
+
+### 🎨 Documentação do Frontend
+
+Documentação técnica do frontend React:
+
+- **[README Frontend](plutsgrip-frond-refac/README.md)** - Visão geral do frontend
+- **[Índice](plutsgrip-frond-refac/docs/00-indice.md)** - Navegação completa
+- **[Visão Geral](plutsgrip-frond-refac/docs/01-visao-geral.md)** - Objetivos e funcionalidades
+- **[Arquitetura](plutsgrip-frond-refac/docs/02-arquitetura.md)** - Estrutura do frontend
+- **[Testes](plutsgrip-frond-refac/docs/05-testes.md)** - Guia de testes
+- **[Componentes](plutsgrip-frond-refac/docs/07-componentes.md)** - Catálogo de componentes
+- **[Guia de Desenvolvimento](plutsgrip-frond-refac/docs/09-guia-desenvolvimento.md)** - Workflow e convenções
+
+---
+
+## 🛠 Tecnologias
+
+### Backend
+- **[FastAPI](https://fastapi.tiangolo.com/)** - Framework web moderno e rápido
+- **[Python 3.11+](https://www.python.org/)** - Linguagem de programação
+- **[PostgreSQL 16+](https://www.postgresql.org/)** - Banco de dados relacional
+- **[SQLAlchemy 2.0](https://www.sqlalchemy.org/)** - ORM assíncrono
+- **[Alembic](https://alembic.sqlalchemy.org/)** - Migrations de banco
+- **[Pydantic v2](https://docs.pydantic.dev/)** - Validação de dados
+- **[PyJWT](https://pyjwt.readthedocs.io/)** - Autenticação JWT
+- **[Pytest](https://pytest.org/)** - Framework de testes
+
+### Frontend
+- **[React 19.1](https://react.dev/)** - Biblioteca UI
+- **[TypeScript 5.9](https://www.typescriptlang.org/)** - Superset tipado do JavaScript
+- **[Vite 5+](https://vitejs.dev/)** - Build tool e dev server
+- **[TailwindCSS 4.1](https://tailwindcss.com/)** - Framework CSS utilitário
+- **[Radix UI](https://www.radix-ui.com/)** - Componentes acessíveis
+- **[Recharts](https://recharts.org/)** - Biblioteca de gráficos
+- **[React Router 7](https://reactrouter.com/)** - Roteamento
+- **[Vitest](https://vitest.dev/)** - Framework de testes
+
+### DevOps & Infraestrutura
+- **[Docker](https://www.docker.com/)** - Containerização
+- **[Docker Compose](https://docs.docker.com/compose/)** - Orquestração
+- **[Nginx](https://nginx.org/)** - Reverse proxy e servidor web
+- **[Gunicorn](https://gunicorn.org/)** - WSGI HTTP Server (produção)
+- **[DigitalOcean](https://www.digitalocean.com/)** - Hospedagem VPS
+- **[Neon PostgreSQL](https://neon.tech/)** - Postgres Serverless (produção)
+
+---
+
+## 🎯 Arquitetura
+
+### Visão Geral
+
+```
+┌─────────────────────────────────────────────┐
+│         Frontend (React + TypeScript)        │
+│  Interface responsiva e moderna             │
+└────────────────┬────────────────────────────┘
+                 │ HTTP/REST
+┌────────────────▼────────────────────────────┐
+│      Nginx (Reverse Proxy - Produção)       │
+│  Rate limiting, SSL, gzip, cache            │
+└────────────────┬────────────────────────────┘
+                 │
+┌────────────────▼────────────────────────────┐
+│      API (FastAPI + Python)                 │
+│  Business logic, autenticação, validação    │
+└────────────────┬────────────────────────────┘
+                 │ SQLAlchemy ORM
+┌────────────────▼────────────────────────────┐
+│      PostgreSQL 16                          │
+│  Banco de dados relacional                  │
+└─────────────────────────────────────────────┘
+```
+
+### Camadas
+
+- **Frontend Layer**: Componentes React, hooks, contexts, routing
+- **API Gateway**: Nginx (produção) - reverse proxy, rate limiting, SSL
+- **API Layer**: FastAPI endpoints, validação Pydantic
+- **Service Layer**: Lógica de negócio, orquestração
+- **Repository Layer**: Acesso a dados, queries SQL
+- **Database Layer**: PostgreSQL, migrations Alembic
 
 ---
 
@@ -182,11 +278,12 @@ Veja instruções detalhadas em:
 
 ```
 plutsgrip-app/
-├── docs/                          # 📚 Documentação completa
-│   ├── INDEX.md                   # Hub de documentação
-│   ├── BACKEND.md                 # Documentação do backend
-│   ├── FRONTEND.md                # Documentação do frontend
-│   └── *.md                       # Guias adicionais
+├── docs/                          # 📚 Documentação geral
+│   ├── setup.md                   # Guia de instalação
+│   ├── contribuindo.md            # Guia de contribuição
+│   ├── docker.md                  # Documentação Docker
+│   ├── migracao-docker.md         # Migração Docker
+│   └── deploy-producao.md         # Deploy em produção
 │
 ├── plutsgrip-api/                 # 🔌 Backend (FastAPI + Python)
 │   ├── app/
@@ -196,10 +293,10 @@ plutsgrip-app/
 │   │   ├── schemas/               # Schemas Pydantic
 │   │   ├── repositories/          # Camada de acesso a dados
 │   │   └── services/              # Lógica de negócio
-│   ├── alembic/                   # Migrações do banco de dados
+│   ├── docs/                      # Documentação do backend
+│   ├── alembic/                   # Migrações do banco
 │   ├── tests/                     # Testes do backend
-│   ├── main.py                    # Ponto de entrada da aplicação
-│   └── requirements.txt           # Dependências Python
+│   └── main.py                    # Entry point
 │
 ├── plutsgrip-frond-refac/         # 🎨 Frontend (React + TypeScript)
 │   ├── src/
@@ -207,17 +304,18 @@ plutsgrip-app/
 │   │   ├── pages/                 # Componentes de página
 │   │   ├── services/              # Camada de serviço da API
 │   │   ├── hooks/                 # Custom React hooks
-│   │   ├── contexts/              # Contextos React (Auth, Currency, Theme)
+│   │   ├── contexts/              # React contexts
 │   │   └── utils/                 # Funções utilitárias
+│   ├── docs/                      # Documentação do frontend
 │   ├── e2e/                       # Testes E2E (Playwright)
-│   ├── tests/                     # Testes unitários (Vitest)
-│   └── package.json               # Dependências Node
+│   └── tests/                     # Testes unitários (Vitest)
 │
 ├── nginx/                         # 🌐 Configuração Nginx
-├── docker-compose.dev.yml         # Ambiente dev Docker
-├── docker-compose.prod.yml        # Ambiente prod Docker
+├── docker-compose.yml             # Docker Compose unificado
+├── .env.dev                       # Variáveis de ambiente (dev)
+├── .env.prod                      # Variáveis de ambiente (prod)
 ├── Makefile                       # Comandos de desenvolvimento
-├── DEPLOY_GUIDE.md                # Guia de deploy em produção
+├── GUIA_ORGANIZACAO.md            # Guia de organização
 └── README.md                      # Este arquivo
 ```
 
@@ -228,14 +326,16 @@ plutsgrip-app/
 ### Comandos Disponíveis
 
 ```bash
-# Desenvolvimento Docker
+# Docker
 make up              # Inicia ambiente de desenvolvimento
 make down            # Para todos os containers
 make logs            # Visualiza todos os logs
-make logs-api        # Visualiza apenas logs do backend
+make logs-api        # Visualiza logs do backend
+make logs-frontend   # Visualiza logs do frontend
 make shell           # Acessa shell do backend
 make test            # Executa testes do backend
 make status          # Mostra status dos containers
+make build           # Build das imagens
 
 # Backend (sem Docker)
 cd plutsgrip-api
@@ -248,20 +348,25 @@ python main.py
 cd plutsgrip-frond-refac
 npm install
 npm run dev
-npm test            # Testes unitários
-npm run build       # Build de produção
 ```
 
-### Testes
+---
+
+## 🧪 Testes
+
+### Backend
 
 ```bash
-# Testes do Backend
 cd plutsgrip-api
 pytest                    # Executa todos os testes
 pytest --cov             # Com cobertura
 pytest -v                # Saída verbose
+pytest -k "test_auth"    # Testes específicos
+```
 
-# Testes do Frontend
+### Frontend
+
+```bash
 cd plutsgrip-frond-refac
 npm test                 # Testes unitários (Vitest)
 npm test:coverage        # Com cobertura
@@ -269,81 +374,80 @@ npx playwright test      # Testes E2E
 npx playwright test --ui # E2E com UI
 ```
 
+### Estatísticas de Testes
+
+- **Backend**: 30+ testes (pytest)
+- **Frontend**: 100+ testes (vitest)
+- **Cobertura**: >90%
+- **Total**: 130+ testes automatizados
+
 ---
 
 ## 🚀 Deploy
 
-A aplicação está atualmente implantada na **DigitalOcean** com a seguinte configuração:
+A aplicação está atualmente em produção na **DigitalOcean**:
 
-- **Servidor:** DigitalOcean Droplet (2GB RAM, 1 vCPU)
-- **Endereço IP:** 68.183.98.186
-- **Web Server:** Nginx (proxy reverso + arquivos estáticos)
-- **Backend:** FastAPI (serviço systemd)
-- **Banco de Dados:** Neon PostgreSQL (serverless, sa-east-1)
-- **SSL:** Let's Encrypt (opcional, requer domínio)
+- **Servidor**: DigitalOcean Droplet (2GB RAM, 1 vCPU)
+- **Endereço**: http://68.183.98.186
+- **Web Server**: Nginx (reverse proxy + estáticos)
+- **Backend**: FastAPI (serviço systemd)
+- **Banco**: Neon PostgreSQL (serverless, sa-east-1)
 
 ### Guia de Deploy
 
-Para instruções completas de deploy, veja **[DEPLOY_GUIDE.md](DEPLOY_GUIDE.md)**
+Para instruções completas, veja [docs/deploy-producao.md](docs/deploy-producao.md)
 
-Checklist rápido de deploy:
-- ✅ Droplet da DigitalOcean criado e configurado
-- ✅ Backend implantado com serviço systemd
-- ✅ Frontend buildado e servido via Nginx
-- ✅ Migrações do banco aplicadas no Neon
+Checklist:
+- ✅ Servidor provisionado
+- ✅ Backend configurado com systemd
+- ✅ Frontend buildado e servido por Nginx
+- ✅ Migrations aplicadas
 - ✅ Variáveis de ambiente configuradas
-- ✅ Regras de firewall configuradas
-- ✅ Serviços executando e monitorados
+- ✅ Firewall e segurança configurados
 
 ---
 
 ## 🤝 Contribuindo
 
-Contribuições são bem-vindas! Por favor, veja **[CONTRIBUTING.md](CONTRIBUTING.md)** para orientações.
+Contribuições são sempre bem-vindas! Veja [docs/contribuindo.md](docs/contribuindo.md) para orientações completas.
 
-### Passos Rápidos para Contribuição
+### Passos Rápidos
 
-1. Faça fork do repositório
-2. Crie uma branch de feature (`git checkout -b feature/amazing-feature`)
-3. Faça suas alterações
-4. Adicione testes para suas alterações
-5. Execute os testes (`make test`)
-6. Commit suas alterações (`git commit -m 'feat: add amazing feature'`)
-7. Push para sua branch (`git push origin feature/amazing-feature`)
-8. Abra um Pull Request
+1. Fork o projeto
+2. Crie uma branch (`git checkout -b feature/MinhaFeature`)
+3. Commit suas mudanças (`git commit -m 'feat: adiciona MinhaFeature'`)
+4. Push para a branch (`git push origin feature/MinhaFeature`)
+5. Abra um Pull Request
 
-### Fluxo de Desenvolvimento
+### Convenções de Commit
 
-1. Confira a [documentação](docs/INDEX.md) para arquitetura e padrões
-2. Siga as diretrizes de estilo de código (PEP 8 para Python, ESLint para TypeScript)
-3. Escreva testes para novas funcionalidades
-4. Atualize a documentação conforme necessário
-5. Garanta que todos os testes passem antes de submeter PR
+Utilizamos [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat:` Nova funcionalidade
+- `fix:` Correção de bug
+- `docs:` Documentação
+- `style:` Formatação
+- `refactor:` Refatoração
+- `test:` Testes
+- `chore:` Manutenção
 
 ---
 
 ## 📊 Estatísticas do Projeto
 
-- **Linhas de Código:** ~15.000+
-- **Testes Backend:** 30+ (pytest)
-- **Testes Frontend:** 100+ (vitest)
-- **Endpoints da API:** 35+
-- **Cobertura de Testes:** >90%
-- **Cobertura TypeScript:** 100%
-
----
-
-## 📞 Suporte e Contato
-
-- **Issues:** [GitHub Issues](https://github.com/LeP-Projects/plutsgrip-app/issues)
-- **Discussões:** [GitHub Discussions](https://github.com/LeP-Projects/plutsgrip-app/discussions)
-- **Email:** paulodjunior.dev@gmail.com
+- **Versão**: 0.1.0
+- **Status**: ✅ Production Ready
+- **Linhas de Código**: ~15.000+
+- **Endpoints API**: 35+
+- **Componentes React**: 35+
+- **Cobertura de Testes**: >90%
+- **TypeScript Coverage**: 100%
 
 ---
 
 ## 📄 Licença
 
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+Este projeto está licenciado sob a Licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
 
 ---
 
@@ -357,10 +461,21 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICE
 
 ---
 
+## 📞 Suporte
+
+- **Documentação**: [docs/](docs/)
+- **Issues**: [GitHub Issues](https://github.com/LeP-Projects/plutsgrip-app/issues)
+- **Discussões**: [GitHub Discussions](https://github.com/LeP-Projects/plutsgrip-app/discussions)
+- **Email**: paulodjunior.dev@gmail.com
+
+---
+
 <div align="center">
 
 **Projeto PlutusGrip Finance Tracker**
 
-[⬆ Voltar ao Topo](#plutsgrip-finance-tracker)
+Desenvolvido com ❤️ por LeP Projects
+
+[⬆ Voltar ao Topo](#plutsgrip---gerenciador-de-finanças-pessoais)
 
 </div>

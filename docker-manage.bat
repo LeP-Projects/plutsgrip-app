@@ -1,6 +1,10 @@
 @echo off
+REM ============================================================
 REM PlutusGrip Docker Management Script for Windows
+REM ============================================================
+REM Supports unified docker-compose.yml with profiles
 REM Usage: docker-manage.bat [command] [environment]
+REM ============================================================
 
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
@@ -15,7 +19,8 @@ set "NC=[0m"
 REM Default environment
 set "ENVIRONMENT=dev"
 
-REM Parse arguments
+REM ==================== PARSE ARGUMENTS ====================
+
 if "%1"=="" (
     call :show_header
     call :show_usage
@@ -27,13 +32,14 @@ if not "%2"=="" set "ENVIRONMENT=%2"
 
 REM Validate environment
 if not "%ENVIRONMENT%"=="dev" if not "%ENVIRONMENT%"=="prod" (
-    echo %RED%Error: Invalid environment '%ENVIRONMENT%' (use 'dev' or 'prod')%NC%
+    echo %RED%Error: Invalid environment '%ENVIRONMENT%' ^(use 'dev' or 'prod'^)%NC%
     exit /b 1
 )
 
 call :show_header
 
-REM Execute command
+REM ==================== EXECUTE COMMAND ====================
+
 if "%COMMAND%"=="up" (
     call :cmd_up %ENVIRONMENT%
 ) else if "%COMMAND%"=="down" (
@@ -60,6 +66,8 @@ if "%COMMAND%"=="up" (
     call :cmd_status %ENVIRONMENT%
 ) else if "%COMMAND%"=="test" (
     call :cmd_test %ENVIRONMENT%
+) else if "%COMMAND%"=="pgadmin" (
+    call :cmd_pgadmin %ENVIRONMENT%
 ) else if "%COMMAND%"=="help" (
     call :show_usage
 ) else (
@@ -73,13 +81,13 @@ exit /b 0
 REM ==================== HELPER FUNCTIONS ====================
 
 :show_header
-echo %BLUE%=====================================
-echo  PlutusGrip Docker Management
-echo =====================================%NC%
-exit /b 0
+echo %BLUE%════════════════════════════════════════%NC%
+echo %BLUE% PlutusGrip Docker Management%NC%
+echo %BLUE%════════════════════════════════════════%NC%
+echo.
+goto :eof
 
 :show_usage
-echo.
 echo %BLUE%Usage:%NC% docker-manage.bat [command] [environment]
 echo.
 echo %BLUE%Commands:%NC%
@@ -89,120 +97,163 @@ echo   restart         Restart all containers
 echo   logs            View container logs
 echo   logs-api        View API logs only
 echo   logs-frontend   View Frontend logs only
-echo   logs-db         View Database logs only
+echo   logs-db         View Database logs only ^(dev only^)
 echo   shell           Access API container shell
-echo   shell-db        Access database container shell
+echo   shell-db        Access database container shell ^(dev only^)
 echo   build           Build/rebuild containers
-echo   clean           Remove containers and volumes (WARNING!)
+echo   clean           Remove containers and volumes ^(WARNING!^)
 echo   status          Show container status
-echo   test            Run tests (dev only)
+echo   test            Run tests ^(dev only^)
+echo   pgadmin         Start pgAdmin ^(dev only^)
 echo   help            Show this help message
 echo.
 echo %BLUE%Environments:%NC%
-echo   dev             Development (default)
-echo   prod            Production
+echo   dev             Development ^(default^) - includes postgres + pgAdmin
+echo   prod            Production - uses external database + Nginx
 echo.
 echo %BLUE%Examples:%NC%
 echo   docker-manage.bat up dev
 echo   docker-manage.bat logs prod
 echo   docker-manage.bat shell dev
+echo   docker-manage.bat pgadmin dev
+echo   docker-manage.bat down
 echo.
-exit /b 0
+echo %BLUE%Notes:%NC%
+echo   - Dev environment includes: API, Frontend, PostgreSQL, pgAdmin
+echo   - Prod environment includes: API, Frontend, Nginx ^(no database^)
+echo   - Prod requires external database configured in .env.prod
+echo.
+goto :eof
 
-REM ==================== COMMANDS ====================
+:get_compose_command
+set "COMPOSE_CMD=docker compose --profile %1 --env-file .env.%1"
+goto :eof
+
+REM ==================== DOCKER COMMANDS ====================
 
 :cmd_up
+call :get_compose_command %1
+echo %BLUE%ℹ Starting containers in %1 environment ^(profile: %1^)...%NC%
+%COMPOSE_CMD% up -d
+
+timeout /t 2 /nobreak >nul
+call :cmd_status %1
+
 echo.
-echo Starting containers in %~1 environment...
-docker-compose -f docker-compose.%~1.yml up -d
-if errorlevel 1 exit /b 1
-timeout /t 2 /nobreak > nul
-call :cmd_status %~1
-echo.
-echo %GREEN%All services started!%NC%
-echo %BLUE%Available at:%NC%
-if "%~1"=="dev" (
-    echo   Frontend: http://localhost:5173
-    echo   API:      http://localhost:8000
-    echo   Docs:     http://localhost:8000/docs
-    echo   Database: localhost:5432
+echo %GREEN%✓ All services started!%NC%
+echo %BLUE%ℹ Available at:%NC%
+
+if "%1"=="dev" (
+    echo   Frontend: %BLUE%http://localhost:5173%NC%
+    echo   API:      %BLUE%http://localhost:8000%NC%
+    echo   Docs:     %BLUE%http://localhost:8000/docs%NC%
+    echo   pgAdmin:  %BLUE%http://localhost:5050%NC% ^(admin@plutusgrip.com / admin123^)
+    echo   Database: %BLUE%localhost:5432%NC%
 ) else (
-    echo   Frontend: http://localhost
-    echo   API:      http://localhost/api
-    echo   Docs:     http://localhost/docs
+    echo   Application: %BLUE%http://localhost%NC%
+    echo   API:         %BLUE%http://localhost/api%NC%
+    echo   Docs:        %BLUE%http://localhost/docs%NC%
+    echo   %YELLOW%Note: Using external database ^(no postgres container^)%NC%
 )
-exit /b 0
+goto :eof
 
 :cmd_down
-echo.
-echo Stopping containers in %~1 environment...
-docker-compose -f docker-compose.%~1.yml down
-echo %GREEN%All services stopped!%NC%
-exit /b 0
+call :get_compose_command %1
+echo %YELLOW%⚠ Stopping containers in %1 environment...%NC%
+%COMPOSE_CMD% down
+echo %GREEN%✓ All services stopped!%NC%
+goto :eof
 
 :cmd_restart
-echo.
-echo Restarting containers in %~1 environment...
-call :cmd_down %~1
-timeout /t 1 /nobreak > nul
-call :cmd_up %~1
-exit /b 0
+call :cmd_down %1
+timeout /t 1 /nobreak >nul
+call :cmd_up %1
+goto :eof
 
 :cmd_logs
-docker-compose -f docker-compose.%~1.yml logs -f
-exit /b 0
+call :get_compose_command %1
+%COMPOSE_CMD% logs -f
+goto :eof
 
 :cmd_logs_api
-docker-compose -f docker-compose.%~1.yml logs -f api
-exit /b 0
+call :get_compose_command %1
+%COMPOSE_CMD% logs -f api
+goto :eof
 
 :cmd_logs_frontend
-docker-compose -f docker-compose.%~1.yml logs -f frontend
-exit /b 0
+call :get_compose_command %1
+%COMPOSE_CMD% logs -f frontend
+goto :eof
 
 :cmd_logs_db
-docker-compose -f docker-compose.%~1.yml logs -f postgres
-exit /b 0
-
-:cmd_shell
-docker-compose -f docker-compose.%~1.yml exec api bash
-exit /b 0
-
-:cmd_shell_db
-docker-compose -f docker-compose.%~1.yml exec postgres bash
-exit /b 0
-
-:cmd_build
-echo.
-echo Building images for %~1 environment...
-docker-compose -f docker-compose.%~1.yml build
-echo %GREEN%Images built successfully!%NC%
-exit /b 0
-
-:cmd_clean
-echo.
-echo %YELLOW%This will remove all containers and volumes for %~1!%NC%
-set /p confirm="Are you sure? (yes/no): "
-if /i "%confirm%"=="yes" (
-    docker-compose -f docker-compose.%~1.yml down -v
-    echo %GREEN%Cleaned up successfully!%NC%
-) else (
-    echo Cleanup cancelled
-)
-exit /b 0
-
-:cmd_status
-echo.
-echo %BLUE%Container Status (%~1):%NC%
-docker-compose -f docker-compose.%~1.yml ps
-exit /b 0
-
-:cmd_test
-if not "%~1"=="dev" (
-    echo %RED%Error: Tests can only run in dev environment!%NC%
+if not "%1"=="dev" (
+    echo %RED%✗ Database container only available in dev environment!%NC%
     exit /b 1
 )
+call :get_compose_command %1
+%COMPOSE_CMD% logs -f postgres
+goto :eof
+
+:cmd_shell
+call :get_compose_command %1
+%COMPOSE_CMD% exec api bash
+goto :eof
+
+:cmd_shell_db
+if not "%1"=="dev" (
+    echo %RED%✗ Database container only available in dev environment!%NC%
+    exit /b 1
+)
+call :get_compose_command %1
+%COMPOSE_CMD% exec postgres bash
+goto :eof
+
+:cmd_build
+call :get_compose_command %1
+echo %BLUE%ℹ Building images for %1 environment...%NC%
+%COMPOSE_CMD% build --no-cache
+echo %GREEN%✓ Images built successfully!%NC%
+goto :eof
+
+:cmd_clean
+call :get_compose_command %1
+echo %YELLOW%⚠ This will remove all containers and volumes for %1!%NC%
+set /p CONFIRM="Are you sure? (yes/no): "
+if /i "%CONFIRM%"=="yes" (
+    %COMPOSE_CMD% down -v --rmi local
+    echo %GREEN%✓ Cleaned up successfully!%NC%
+) else (
+    echo %BLUE%ℹ Cleanup cancelled%NC%
+)
+goto :eof
+
+:cmd_status
+call :get_compose_command %1
 echo.
-echo Running tests...
-docker-compose -f docker-compose.%~1.yml exec api pytest -v
-exit /b 0
+echo %BLUE%ℹ Container Status ^(%1^):%NC%
+%COMPOSE_CMD% ps
+goto :eof
+
+:cmd_test
+if not "%1"=="dev" (
+    echo %RED%✗ Tests can only run in dev environment!%NC%
+    exit /b 1
+)
+call :get_compose_command %1
+echo %BLUE%ℹ Running tests...%NC%
+%COMPOSE_CMD% exec api pytest -v
+goto :eof
+
+:cmd_pgadmin
+if not "%1"=="dev" (
+    echo %RED%✗ pgAdmin only available in dev environment!%NC%
+    exit /b 1
+)
+call :get_compose_command dev
+echo %BLUE%ℹ Starting pgAdmin...%NC%
+%COMPOSE_CMD% up -d pgadmin
+echo %GREEN%✓ pgAdmin started!%NC%
+echo   Access: %BLUE%http://localhost:5050%NC%
+echo   Email: %BLUE%admin@plutusgrip.com%NC%
+echo   Password: %BLUE%admin123%NC%
+goto :eof

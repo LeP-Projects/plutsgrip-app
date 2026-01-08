@@ -50,7 +50,7 @@ const translations: Record<string, LoginPageTranslations> = {
   },
   pt: {
     signIn: "Entrar",
-    welcomeBack: "Bem-vindo de volta ao ControleFinanceiro",
+    welcomeBack: "Bem-vindo ao PlutusGrip",
     enterCredentials: "Digite suas credenciais para acessar sua conta",
     email: "Email",
     password: "Senha",

@@ -56,24 +56,31 @@ ${BLUE}Commands:${NC}
   logs            View container logs
   logs-api        View API logs only
   logs-frontend   View Frontend logs only
-  logs-db         View Database logs only
+  logs-db         View Database logs only (dev only)
   shell           Access API container shell
-  shell-db        Access database container shell
+  shell-db        Access database container shell (dev only)
   build           Build/rebuild containers
   clean           Remove containers and volumes (WARNING!)
   status          Show container status
   test            Run tests (dev only)
+  pgadmin         Start pgAdmin (dev only)
   help            Show this help message
 
 ${BLUE}Environments:${NC}
-  dev             Development (default)
-  prod            Production
+  dev             Development (default) - includes postgres + pgAdmin
+  prod            Production - uses external database + Nginx
 
 ${BLUE}Examples:${NC}
   ./docker-manage.sh up dev
   ./docker-manage.sh logs prod
   ./docker-manage.sh shell dev
+  ./docker-manage.sh pgadmin dev
   ./docker-manage.sh down
+
+${BLUE}Notes:${NC}
+  - Dev environment includes: API, Frontend, PostgreSQL, pgAdmin
+  - Prod environment includes: API, Frontend, Nginx (no database)
+  - Prod requires external database configured in .env.prod
 
 EOF
 }
@@ -92,9 +99,9 @@ setup_environment() {
     print_info "Environment: $env"
 }
 
-get_compose_file() {
+get_compose_command() {
     local env=$1
-    echo "$SCRIPT_DIR/docker-compose.$env.yml"
+    echo "docker compose --profile $env --env-file $SCRIPT_DIR/.env.$env"
 }
 
 # ==================== DOCKER COMMANDS ====================
@@ -103,8 +110,8 @@ cmd_up() {
     local env=$1
     setup_environment "$env"
 
-    print_info "Starting containers in $env environment..."
-    docker-compose -f "$(get_compose_file $env)" up -d
+    print_info "Starting containers in $env environment (profile: $env)..."
+    $(get_compose_command $env) up -d
 
     sleep 2
     cmd_status "$env"
@@ -117,11 +124,13 @@ cmd_up() {
         echo "  Frontend: ${BLUE}http://localhost:5173${NC}"
         echo "  API:      ${BLUE}http://localhost:8000${NC}"
         echo "  Docs:     ${BLUE}http://localhost:8000/docs${NC}"
+        echo "  pgAdmin:  ${BLUE}http://localhost:5050${NC} (admin@plutusgrip.com / admin123)"
         echo "  Database: ${BLUE}localhost:5432${NC}"
     else
-        echo "  Frontend: ${BLUE}http://localhost${NC}"
-        echo "  API:      ${BLUE}http://localhost/api${NC}"
-        echo "  Docs:     ${BLUE}http://localhost/docs${NC}"
+        echo "  Application: ${BLUE}http://localhost${NC}"
+        echo "  API:         ${BLUE}http://localhost/api${NC}"
+        echo "  Docs:        ${BLUE}http://localhost/docs${NC}"
+        echo "  ${YELLOW}Note: Using external database (no postgres container)${NC}"
     fi
 }
 
@@ -130,7 +139,7 @@ cmd_down() {
     setup_environment "$env"
 
     print_warning "Stopping containers in $env environment..."
-    docker-compose -f "$(get_compose_file $env)" down
+    $(get_compose_command $env) down
 
     print_success "All services stopped!"
 }
@@ -146,42 +155,52 @@ cmd_logs() {
     local env=$1
     setup_environment "$env"
 
-    docker-compose -f "$(get_compose_file $env)" logs -f
+    $(get_compose_command $env) logs -f
 }
 
 cmd_logs_api() {
     local env=$1
     setup_environment "$env"
 
-    docker-compose -f "$(get_compose_file $env)" logs -f api
+    $(get_compose_command $env) logs -f api
 }
 
 cmd_logs_frontend() {
     local env=$1
     setup_environment "$env"
 
-    docker-compose -f "$(get_compose_file $env)" logs -f frontend
+    $(get_compose_command $env) logs -f frontend
 }
 
 cmd_logs_db() {
     local env=$1
     setup_environment "$env"
 
-    docker-compose -f "$(get_compose_file $env)" logs -f postgres
+    if [ "$env" != "dev" ]; then
+        print_error "Database container only available in dev environment!"
+        exit 1
+    fi
+
+    $(get_compose_command $env) logs -f postgres
 }
 
 cmd_shell() {
     local env=$1
     setup_environment "$env"
 
-    docker-compose -f "$(get_compose_file $env)" exec api bash
+    $(get_compose_command $env) exec api bash
 }
 
 cmd_shell_db() {
     local env=$1
     setup_environment "$env"
 
-    docker-compose -f "$(get_compose_file $env)" exec postgres bash
+    if [ "$env" != "dev" ]; then
+        print_error "Database container only available in dev environment!"
+        exit 1
+    fi
+
+    $(get_compose_command $env) exec postgres bash
 }
 
 cmd_build() {
@@ -189,7 +208,7 @@ cmd_build() {
     setup_environment "$env"
 
     print_info "Building images for $env environment..."
-    docker-compose -f "$(get_compose_file $env)" build
+    $(get_compose_command $env) build --no-cache
 
     print_success "Images built successfully!"
 }
@@ -202,7 +221,7 @@ cmd_clean() {
     read -p "Are you sure? (yes/no): " confirm
 
     if [ "$confirm" = "yes" ]; then
-        docker-compose -f "$(get_compose_file $env)" down -v
+        $(get_compose_command $env) down -v --rmi local
         print_success "Cleaned up successfully!"
     else
         print_info "Cleanup cancelled"
@@ -215,7 +234,7 @@ cmd_status() {
 
     echo ""
     print_info "Container Status ($env):"
-    docker-compose -f "$(get_compose_file $env)" ps
+    $(get_compose_command $env) ps
 }
 
 cmd_test() {
@@ -229,7 +248,24 @@ cmd_test() {
     setup_environment "$env"
 
     print_info "Running tests..."
-    docker-compose -f "$(get_compose_file $env)" exec api pytest -v
+    $(get_compose_command $env) exec api pytest -v
+}
+
+cmd_pgadmin() {
+    if [ "$1" != "dev" ]; then
+        print_error "pgAdmin only available in dev environment!"
+        exit 1
+    fi
+
+    setup_environment "dev"
+
+    print_info "Starting pgAdmin..."
+    $(get_compose_command dev) up -d pgadmin
+
+    print_success "pgAdmin started!"
+    echo "  Access: ${BLUE}http://localhost:5050${NC}"
+    echo "  Email: ${BLUE}admin@plutusgrip.com${NC}"
+    echo "  Password: ${BLUE}admin123${NC}"
 }
 
 # ==================== MAIN ====================
@@ -285,6 +321,9 @@ main() {
             ;;
         test)
             cmd_test "$environment"
+            ;;
+        pgadmin)
+            cmd_pgadmin "$environment"
             ;;
         help)
             show_usage

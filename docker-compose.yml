@@ -1,0 +1,213 @@
+version: '3.9'
+
+# ============================================================
+# PLUTUSGRIP - UNIFIED DOCKER COMPOSE CONFIGURATION
+# ============================================================
+# Profiles:
+#   - dev: Development environment (postgres + pgAdmin + hot reload)
+#   - prod: Production environment (external DB + Nginx reverse proxy)
+#
+# Usage:
+#   Development: docker compose --profile dev --env-file .env.dev up -d
+#   Production:  docker compose --profile prod --env-file .env.prod up -d
+# ============================================================
+
+services:
+  # ==================== DATABASE (DEV ONLY) ====================
+  postgres:
+    image: postgres:16-alpine
+    container_name: plutusgrip_postgres
+    profiles: [dev]  # Only in development
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-plutusgrip_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-plutusgrip_password}
+      POSTGRES_DB: ${POSTGRES_DB:-plutusgrip_db}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./plutsgrip-api/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - plutusgrip_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-plutusgrip_user} -d ${POSTGRES_DB:-plutusgrip_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  # ==================== PGADMIN (DEV ONLY) ====================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: plutusgrip_pgadmin
+    profiles: [dev]  # Only in development
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@plutusgrip.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - plutusgrip_network
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  # ==================== BACKEND API ====================
+  api:
+    build:
+      context: ./plutsgrip-api
+      dockerfile: ${API_DOCKERFILE:-Dockerfile}
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    container_name: plutusgrip_api
+    environment:
+      # Database - conditional based on profile
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-plutusgrip_user}:${POSTGRES_PASSWORD:-plutusgrip_password}@postgres:5432/${POSTGRES_DB:-plutusgrip_db}}
+      POSTGRES_USER: ${POSTGRES_USER:-plutusgrip_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-plutusgrip_password}
+      POSTGRES_DB: ${POSTGRES_DB:-plutusgrip_db}
+
+      # Application
+      APP_ENV: ${APP_ENV:-development}
+      DEBUG: ${DEBUG:-True}
+      SECRET_KEY: ${SECRET_KEY:-dev-super-secret-key-change-this-in-production}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+
+      # CORS
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:8000}
+
+      # Database Pool
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
+      DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-30}
+      DB_POOL_RECYCLE: ${DB_POOL_RECYCLE:-3600}
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-DEBUG}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      # Dev volumes for hot reload - only mounted when Dockerfile.dev is used
+      - ./plutsgrip-api/app:/app/app:${VOLUME_MODE:-rw}
+      - ./plutsgrip-api/logs:/app/logs:rw
+      - ./plutsgrip-api/main.py:/app/main.py:${VOLUME_MODE:-rw}
+      - ./plutsgrip-api/alembic:/app/alembic:${VOLUME_MODE:-rw}
+      - ./plutsgrip-api/alembic.ini:/app/alembic.ini:${VOLUME_MODE:-rw}
+      - ./plutsgrip-api/tests:/app/tests:${VOLUME_MODE:-rw}
+      - ./plutsgrip-api/seeds:/app/seeds:${VOLUME_MODE:-rw}
+    networks:
+      - plutusgrip_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: ${RESTART_POLICY:-unless-stopped}
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: ${API_CPU_LIMIT:-1}
+          memory: ${API_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: ${API_CPU_RESERVATION:-0.5}
+          memory: ${API_MEMORY_RESERVATION:-512M}
+
+  # ==================== FRONTEND ====================
+  frontend:
+    build:
+      context: ./plutsgrip-frond-refac
+      dockerfile: ${FRONTEND_DOCKERFILE:-Dockerfile}
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
+        - BUILDKIT_INLINE_CACHE=1
+    container_name: plutusgrip_frontend
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    ports:
+      - "${FRONTEND_PORT:-5173}:${FRONTEND_INTERNAL_PORT:-5173}"
+    volumes:
+      # Dev volumes for hot reload - only effective with Dockerfile.dev
+      - ./plutsgrip-frond-refac/src:/app/src:${VOLUME_MODE:-rw}
+      - ./plutsgrip-frond-refac/public:/app/public:${VOLUME_MODE:-rw}
+      - ./plutsgrip-frond-refac/index.html:/app/index.html:${VOLUME_MODE:-rw}
+    depends_on:
+      - api
+    networks:
+      - plutusgrip_network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:${FRONTEND_INTERNAL_PORT:-5173}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: ${RESTART_POLICY:-unless-stopped}
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: ${FRONTEND_CPU_LIMIT:-0.5}
+          memory: ${FRONTEND_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${FRONTEND_CPU_RESERVATION:-0.25}
+          memory: ${FRONTEND_MEMORY_RESERVATION:-256M}
+
+  # ==================== NGINX REVERSE PROXY (PROD ONLY) ====================
+  nginx:
+    image: nginx:alpine
+    container_name: plutusgrip_nginx
+    profiles: [prod]  # Only in production
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - api
+      - frontend
+    networks:
+      - plutusgrip_network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+# ==================== VOLUMES ====================
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  nginx_logs:
+    driver: local
+
+# ==================== NETWORKS ====================
+networks:
+  plutusgrip_network:
+    driver: bridge
