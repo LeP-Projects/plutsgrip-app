@@ -138,10 +138,14 @@ export function RecentTransactions({
 
   const fetchCategories = useCallback(() => apiService.listCategories(), [])
 
-  const { data: transactionsData, loading: transactionsLoading } = useApi(
+  const { data: transactionsData, loading: transactionsLoading, refetch } = useApi(
     fetchTransactions,
     true // fetch immediately
   )
+
+  useEffect(() => {
+    refetch()
+  }, [fetchTransactions, refetch])
 
   const { data: categoriesData } = useApi(fetchCategories, true)
 
