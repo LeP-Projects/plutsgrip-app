@@ -1,141 +1,126 @@
-# Guia de Deploy: DigitalOcean + Neon
+# Guia de Deploy: DigitalOcean App Platform + Neon DB
 
-Este guia descreve o passo a passo para colocar o **PlutusGrip** em produção utilizando um Droplet da **DigitalOcean** para a aplicação e o **Neon** como banco de dados.
+Este guia detalha o processo de deploy da aplicação **PlutusGrip** utilizando a infraestrutura da DigitalOcean (App Platform ou Droplet) e banco de dados gerenciado Neon.
 
----
+## Pré-requisitos
 
-## 📋 1. Preparação (Local)
-
-Antes de acessar o servidor, tenha em mãos as seguintes informações:
-
-1.  **IP do Droplet** (ex: `192.168.1.100`).
-2.  **String de Conexão do Neon** (ex: `postgres://usuario:senha@ep-xyz.aws.neon.tech/neondb?sslmode=require`).
-    *   *Dica: Pegue a string "Pooled connection" no dashboard do Neon.*
-3.  **Domínio** (opcional, mas recomendado) ou use o IP direto para testar.
+1.  **Conta na DigitalOcean**
+2.  **Conta na Neon.tech** (para o banco de dados Postgres)
+3.  **Docker e Docker Compose** instalados localmente
+4.  **Projeto configurado** com repositório Git (GitHub/GitLab)
 
 ---
 
-## 🚀 2. Configurando o Servidor (DigitalOcean)
+## 1. Configuração do Banco de Dados (Neon)
 
-Acesse seu droplet via SSH:
+1.  Crie um novo projeto na **Neon Console**.
+2.  Crie um banco de dados (ex: `plutusgrip_prod`).
+3.  Obtenha a string de conexão (Connection String).
+    *   **Formato:** `postgresql://user:password@endpoint.neon.tech/plutusgrip_prod?sslmode=require`
+    *   *Nota: O parâmetro `sslmode=require` é essencial.*
 
-```bash
-ssh root@SEU_IP_DO_DROPLET
+## 2. Configuração das Variáveis de Ambiente
+
+Crie ou atualize o arquivo `.env.prod` (ou configure as variáveis no painel da DigitalOcean App Platform) com os seguintes valores críticos:
+
+### Backend (API)
+```env
+APP_ENV=production
+DEBUG=False
+
+# Database
+# Use a string de conexão do Neon.
+# Importante: A aplicação ajusta automaticamente para asyncpg, mas mantenha o formato padrão.
+DATABASE_URL=postgresql://user:password@endpoint.neon.tech/plutusgrip_prod?sslmode=require
+
+# Security
+SECRET_KEY=sua-chave-secreta-gerada-aleatoriamente-32-chars
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+ALLOWED_ORIGINS=https://seu-dominio.com,https://api.seu-dominio.com
+
+# Performance
+DB_POOL_SIZE=20
+DB_MAX_OVERFLOW=30
 ```
 
-### 2.1. Instalar Docker e Git
-
-Execute os comandos abaixo para instalar o Docker e Docker Compose:
-
-```bash
-# Atualizar lista de pacotes
-apt-get update
-
-# Instalar dependências essenciais e Git
-apt-get install -y ca-certificates curl gnupg git
-
-# Baixar chave GPG oficial do Docker
-install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-chmod a+r /etc/apt/keyrings/docker.gpg
-
-# Adicionar repositório do Docker
-echo \
-  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
-  tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-# Instalar Docker Engine
-apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-# Verificar instalação
-docker compose version
+### Frontend
+```env
+# URL da API em produção (Endereço público)
+VITE_API_URL=https://seu-dominio.com/api
 ```
 
 ---
 
-## 📦 3. Instalação da Aplicação
+## 3. Deploy via DigitalOcean App Platform (Recomendado)
 
-### 3.1. Clonar o Repositório
+A App Platform detecta automaticamente o `Dockerfile` e gerencia o build e deploy.
 
-```bash
-cd /opt
-git clone https://github.com/LeP-Projects/plutsgrip-app.git
-cd plutsgrip-app
-```
+### Passos:
+1.  **Create App**: Conecte seu repositório Git.
+2.  **Resources**: A DigitalOcean detectará os serviços.
+    *   **API**:
+        *   Source Directory: `plutsgrip-api`
+        *   Dockerfile Path: `Dockerfile`
+        *   HTTP Port: `8000`
+    *   **Frontend**:
+        *   Source Directory: `plutsgrip-frond-refac`
+        *   Dockerfile Path: `Dockerfile`
+        *   HTTP Port: `3000` (ou `80` se usar Nginx interno)
+3.  **Environment Variables**:
+    *   Adicione todas as variáveis do `.env.prod` na seção de configuração da App Platform.
+    *   Para o Frontend, certifique-se de que `VITE_API_URL` esteja definida no **Build Time** (pois o Vite "enners" as variáveis no bundle JS).
+4.  **Review & Launch**.
 
-### 3.2. Configurar Variáveis de Produção
+## 4. Deploy via Droplet (Docker Compose)
 
-Crie o arquivo de configuração de produção base:
+Para controle total ou menor custo, use um Droplet com Docker instalado.
 
-```bash
-cp .env.prod .env.prod.local
-nano .env.prod.local
-```
+1.  **Acesso SSH** ao Droplet.
+2.  **Clone o repositório**:
+    ```bash
+    git clone https://github.com/seu-usuario/plutusgrip-app.git
+    cd plutusgrip-app
+    ```
+3.  **Configurar .env**:
+    ```bash
+    cp .env.example .env.prod.local
+    nano .env.prod.local
+    # Preencha com as credenciais reais do Neon e chaves de segurança
+    ```
+4.  **Build e Deploy**:
+    ```bash
+    # Build das imagens otimizadas
+    docker compose --profile prod --env-file .env.prod.local build
 
-**Edite as seguintes linhas no arquivo:**
+    # Iniciar serviços em background
+    docker compose --profile prod --env-file .env.prod.local up -d
+    ```
+5.  **Verificar Logs**:
+    ```bash
+    docker compose logs -f
+    ```
 
-1.  **DATABASE_URL**: Cole sua string de conexão do Neon.
-    *   *Importante:* Se sua string do Neon for `postgres://`, mude para `postgresql://`.
-    *   Exemplo: `DATABASE_URL=postgresql://neondb_owner:k3....@ep-cool-frog.aws.neon.tech/neondb?sslmode=require`
-2.  **SECRET_KEY**: Crie uma senha aleatória forte.
-3.  **VITE_API_URL**:
-    *   Se usar domínio: `https://seudominio.com/api`
-    *   Se usar apenas IP: `http://SEU_IP_DO_DROPLET/api` (Nota: sem HTTPS o navegador pode reclamar, mas funciona para teste).
-4.  **ALLOWED_ORIGINS**:
-    *   `http://SEU_IP_DO_DROPLET,http://localhost`
+## 5. Verificação Pós-Deploy
 
-Salve o arquivo (`Ctrl+O`, `Enter`) e saia (`Ctrl+X`).
+1.  **Health Check API**:
+    *   Acesse `https://seu-dominio.com/api/health`
+    *   Resposta esperada: `{"status": "ok", ...}`
+2.  **Health Check Frontend**:
+    *   Acesse `https://seu-dominio.com/`
+    *   A aplicação deve carregar sem erros no console do navegador.
+3.  **Login e Funcionalidade**:
+    *   Tente fazer login (ou registrar um usuário).
+    *   Crie uma transação de teste.
 
----
+## Solução de Problemas Comuns
 
-## ▶️ 4. Iniciar a Aplicação
+*   **Erro de Conexão com Banco (SSL/Asyncpg)**:
+    *   Certifique-se de que a API está usando a correção implementada para substituir `sslmode` e remover `channel_binding` incompatíveis com `asyncpg`.
+    *   Verifique os logs: `docker compose logs api`
 
-Agora vamos construir e iniciar os containers em modo de produção:
+*   **Erro de Permissão (Logs)**:
+    *   Se ver avisos sobre `Permission denied: '/app/logs/app.log'`, isso é normal em produção se o volume não estiver configurado como RW. A aplicação fará fallback para logs no console (`stdout`), o que é aceitável.
 
-```bash
-# Construir as imagens (pode demorar alguns minutos)
-docker compose --profile prod --env-file .env.prod.local build
-
-# Iniciar os serviços em background
-docker compose --profile prod --env-file .env.prod.local up -d
-```
-
-Verifique se tudo subiu corretamente:
-
-```bash
-docker compose --profile prod --env-file .env.prod.local ps
-```
-*Todos os status devem estar `Up` ou `healthy`.*
-
----
-
-## 🗄️ 5. Configurar Banco de Dados (Migrações)
-
-Como o banco no Neon é novo, ele está vazio. Precisamos criar as tabelas.
-
-```bash
-# Executar as migrações do Alembic dentro do container da API
-docker compose --profile prod --env-file .env.prod.local exec api alembic upgrade head
-
-# (Opcional) Semear categorias padrão
-# Verifique se o script seed_categories.py existe e é acessível
-docker compose --profile prod --env-file .env.prod.local exec api python scripts/seed_categories.py
-```
-
----
-
-## ✅ 6. Teste Final
-
-1.  Abra seu navegador.
-2.  Acesse `http://SEU_IP_DO_DROPLET`.
-3.  O frontend deve carregar.
-4.  Tente criar uma conta ou fazer login.
-
----
-
-## 🛡️ 7. Dicas de Segurança (Pós-Deploy)
-
-*   **Configurar HTTPS**: O Nginx incluso no projeto espera certificados em `./nginx/certs`. Para produção real, recomenda-se configurar o Certbot/Let's Encrypt.
-*   **Firewall**: No painel da DigitalOcean, configure um Firewall para permitir apenas portas 22 (SSH), 80 (HTTP) e 443 (HTTPS).
+*   **CORS Error no Frontend**:
+    *   Verifique se `ALLOWED_ORIGINS` no `.env.prod` da API inclui exatamente o domínio do frontend (ex: `https://pluts-app.com`).
