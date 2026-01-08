@@ -60,7 +60,7 @@ export interface TransactionCreateRequest {
 }
 
 export interface TransactionListResponse {
-  data: Transaction[]
+  transactions: Transaction[]
   total: number
   page: number
   page_size: number
@@ -221,7 +221,7 @@ class ApiService {
   private _accessToken: string | null = null
   private _refreshToken: string | null = null
 
-  private constructor() {}
+  private constructor() { }
 
   /**
    * Getter para accessToken - sempre lê do localStorage para evitar race conditions
