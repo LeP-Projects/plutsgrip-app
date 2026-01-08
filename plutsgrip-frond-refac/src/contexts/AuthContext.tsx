@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { apiService, type User, type LoginResponse } from "@/services/api"
+import { apiService, type User } from "@/services/api"
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean

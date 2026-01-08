@@ -43,7 +43,6 @@ const ChartTooltipContent = React.forwardRef<HTMLDivElement, any>(
       labelClassName,
       formatter,
       color,
-      nameKey,
       labelKey,
     },
     ref,
@@ -52,10 +51,6 @@ const ChartTooltipContent = React.forwardRef<HTMLDivElement, any>(
       if (hideLabel || !payload?.length) {
         return null
       }
-
-      const [item] = payload
-      const key = `${labelKey || item.dataKey || item.name || "value"}`
-      const itemConfig = item.payload
 
       if (labelFormatter) {
         return labelFormatter(label, payload)
@@ -79,8 +74,6 @@ const ChartTooltipContent = React.forwardRef<HTMLDivElement, any>(
         {tooltipLabel ? <p className={cn("font-medium", labelClassName)}>{tooltipLabel}</p> : null}
         <div className="grid gap-1.5">
           {payload.map((item: any, index: number) => {
-            const _key = `${nameKey || item.name || item.dataKey || "value"}`
-            const _itemConfig = item.payload
             const indicatorColor = color || item.payload?.fill || item.color
 
             return (

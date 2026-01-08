@@ -6,7 +6,6 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from "react"
-import { apiService } from "@/services/api"
 
 interface UseApiState<T> {
   data: T | null

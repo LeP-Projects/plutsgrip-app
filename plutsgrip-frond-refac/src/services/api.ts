@@ -278,7 +278,7 @@ class ApiService {
   /**
    * Realiza uma requisição HTTP
    */
-  private _initialized: boolean = false;
+
 
   private async request<T>(
     endpoint: string,
@@ -839,7 +839,6 @@ class ApiService {
   resetState(): void {
     this._accessToken = null
     this._refreshToken = null
-    this._initialized = false
   }
 }
 

@@ -24,27 +24,9 @@ import { Textarea } from "@/components/Textarea"
 import { useState, useEffect, useCallback } from "react"
 import { format } from "date-fns"
 import { useApi } from "@/hooks/useApi"
-import { apiService } from "@/services/api"
+import { apiService, type Transaction } from "@/services/api"
 
-interface Transaction {
-  id: string
-  description: string
-  amount: number
-  date: string
-  category: {
-    id: string
-    name: string
-    type: string
-    color: string
-    icon: string
-    is_default: boolean
-    user_id: string
-    created_at: string
-    updated_at: string
-  } | null
-  type: "expense" | "income"
-  notes?: string
-}
+
 
 // Mock transactions removed - now fetching from API
 
@@ -138,7 +120,7 @@ export function RecentTransactions({
 
   const fetchCategories = useCallback(() => apiService.listCategories(), [])
 
-  const { data: transactionsData, loading: transactionsLoading, refetch } = useApi(
+  const { data: transactionsData, refetch } = useApi(
     fetchTransactions,
     true // fetch immediately
   )
@@ -211,7 +193,7 @@ export function RecentTransactions({
   // The original code used categories from visible transactions for the filter dropdown.
   // We can keep that or use allCategories for the filter too. Let's stick to unique categories from transactions for the FILTER (common pattern),
   // but use ALL categories for the EDIT modal.
-  const filterCategories = Array.from(new Set(transactions.map((t) => t.category?.name).filter(Boolean)))
+  const filterCategories = Array.from(new Set(transactions.map((t) => t.category?.name).filter(Boolean))) as string[]
 
   return (
     <Card>

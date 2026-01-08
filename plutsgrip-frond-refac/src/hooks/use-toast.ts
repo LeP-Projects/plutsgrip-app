@@ -16,6 +16,7 @@ const TOAST_LIMIT = 5
 const TOAST_REMOVE_DELAY = 5000
 
 type ToasterToast = Toast & {
+  open?: boolean
   onOpenChange?: (open: boolean) => void
 }
 
@@ -37,21 +38,21 @@ type ActionType = typeof actionTypes
 
 type Action =
   | {
-      type: ActionType["ADD_TOAST"]
-      toast: ToasterToast
-    }
+    type: ActionType["ADD_TOAST"]
+    toast: ToasterToast
+  }
   | {
-      type: ActionType["UPDATE_TOAST"]
-      toast: Partial<ToasterToast>
-    }
+    type: ActionType["UPDATE_TOAST"]
+    toast: Partial<ToasterToast>
+  }
   | {
-      type: ActionType["DISMISS_TOAST"]
-      toastId?: string
-    }
+    type: ActionType["DISMISS_TOAST"]
+    toastId?: string
+  }
   | {
-      type: ActionType["REMOVE_TOAST"]
-      toastId?: string
-    }
+    type: ActionType["REMOVE_TOAST"]
+    toastId?: string
+  }
 
 interface State {
   toasts: ToasterToast[]
@@ -107,9 +108,9 @@ export const reducer = (state: State, action: Action): State => {
         toasts: state.toasts.map((t) =>
           t.id === toastId || toastId === undefined
             ? {
-                ...t,
-                open: false,
-              }
+              ...t,
+              open: false,
+            }
             : t
         ),
       }
