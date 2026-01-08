@@ -4,7 +4,7 @@ Schemas de Transações Recorrentes para validação de requisições/respostas
 from datetime import datetime, date as DateType
 from decimal import Decimal
 from typing import Optional, Any
-from pydantic import BaseModel, Field, ConfigDict, field_serializer
+from pydantic import BaseModel, Field, ConfigDict, field_serializer, field_validator
 from app.models.category import TransactionType
 
 
@@ -21,6 +21,14 @@ class RecurringTransactionCreateRequest(BaseModel):
     end_date: Optional[DateType] = Field(None, description="Data de término (opcional)")
     notes: Optional[str] = Field(None, description="Notas adicionais")
 
+    @field_validator('type', mode='before')
+    @classmethod
+    def normalize_type(cls, v):
+        """Convert type to uppercase to accept both 'income' and 'INCOME'"""
+        if isinstance(v, str):
+            return v.upper()
+        return v
+
 
 class RecurringTransactionUpdateRequest(BaseModel):
     """Schema para atualizar transação recorrente"""
@@ -34,6 +42,14 @@ class RecurringTransactionUpdateRequest(BaseModel):
     end_date: Optional[DateType] = None
     is_active: Optional[bool] = None
     notes: Optional[str] = None
+
+    @field_validator('type', mode='before')
+    @classmethod
+    def normalize_type(cls, v):
+        """Convert type to uppercase to accept both 'income' and 'INCOME'"""
+        if isinstance(v, str):
+            return v.upper()
+        return v
 
 
 # Schemas de Resposta

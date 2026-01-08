@@ -5,7 +5,7 @@ from datetime import datetime
 from datetime import date as DateType
 from decimal import Decimal
 from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict, field_serializer
+from pydantic import BaseModel, Field, ConfigDict, field_serializer, field_validator
 from app.models.category import TransactionType
 from app.schemas.category import CategoryResponse
 
@@ -24,6 +24,14 @@ class TransactionCreateRequest(BaseModel):
     is_recurring: bool = Field(False, description="Flag indicating if transaction is recurring")
     recurring_transaction_id: Optional[int] = Field(None, description="ID of recurring transaction template")
 
+    @field_validator('type', mode='before')
+    @classmethod
+    def normalize_type(cls, v):
+        """Convert type to uppercase to accept both 'income' and 'INCOME'"""
+        if isinstance(v, str):
+            return v.upper()
+        return v
+
 
 class TransactionUpdateRequest(BaseModel):
     """Schema for transaction update request"""
@@ -37,6 +45,14 @@ class TransactionUpdateRequest(BaseModel):
     tags: Optional[str] = Field(None, max_length=255)
     is_recurring: Optional[bool] = None
     recurring_transaction_id: Optional[int] = None
+
+    @field_validator('type', mode='before')
+    @classmethod
+    def normalize_type(cls, v):
+        """Convert type to uppercase to accept both 'income' and 'INCOME'"""
+        if isinstance(v, str):
+            return v.upper()
+        return v
 
 
 # Response Schemas

@@ -9,7 +9,7 @@ import sqlalchemy as sa
 
 # revision identifiers
 revision = '20260106_whitelist'
-down_revision = 'b7f2c3d4e5f6'
+down_revision = '744169700429'
 branch_labels = None
 depends_on = None
 

@@ -3,7 +3,7 @@ Category schemas for request/response validation
 """
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.models.category import TransactionType
 
 
@@ -15,6 +15,14 @@ class CategoryCreate(BaseModel):
     color: Optional[str] = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
     icon: Optional[str] = Field(None, max_length=50)
 
+    @field_validator('type', mode='before')
+    @classmethod
+    def normalize_type(cls, v):
+        """Convert type to uppercase to accept both 'income' and 'INCOME'"""
+        if isinstance(v, str):
+            return v.upper()
+        return v
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -24,6 +32,14 @@ class CategoryUpdate(BaseModel):
     type: Optional[TransactionType] = None
     color: Optional[str] = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
     icon: Optional[str] = Field(None, max_length=50)
+
+    @field_validator('type', mode='before')
+    @classmethod
+    def normalize_type(cls, v):
+        """Convert type to uppercase to accept both 'income' and 'INCOME'"""
+        if isinstance(v, str):
+            return v.upper()
+        return v
 
     model_config = ConfigDict(from_attributes=True)
 
