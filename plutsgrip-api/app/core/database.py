@@ -3,12 +3,16 @@ Database configuration and session management
 Uses SQLAlchemy 2.0 async engine
 """
 from typing import AsyncGenerator
+import re
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base
 from app.core.config import settings
 
 # Convert postgresql:// to postgresql+asyncpg:// for async support
-DATABASE_URL = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://").replace("sslmode=", "ssl=")
+# Also fix sslmode and remove channel_binding which is not supported by asyncpg
+DATABASE_URL = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+DATABASE_URL = re.sub(r"&?channel_binding=[^&]+", "", DATABASE_URL)
+DATABASE_URL = DATABASE_URL.replace("sslmode=", "ssl=")
 
 # Create async engine
 engine = create_async_engine(
