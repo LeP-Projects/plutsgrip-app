@@ -40,15 +40,19 @@ def setup_logging() -> logging.Logger:
     logger.addHandler(console_handler)
 
     # File handler with rotation
-    file_handler = RotatingFileHandler(
-        filename=settings.LOG_FILE,
-        maxBytes=settings.LOG_MAX_BYTES,
-        backupCount=settings.LOG_BACKUP_COUNT,
-        encoding="utf-8"
-    )
-    file_handler.setLevel(getattr(logging, settings.LOG_LEVEL.upper()))
-    file_handler.setFormatter(log_format)
-    logger.addHandler(file_handler)
+    try:
+        file_handler = RotatingFileHandler(
+            filename=settings.LOG_FILE,
+            maxBytes=settings.LOG_MAX_BYTES,
+            backupCount=settings.LOG_BACKUP_COUNT,
+            encoding="utf-8"
+        )
+        file_handler.setLevel(getattr(logging, settings.LOG_LEVEL.upper()))
+        file_handler.setFormatter(log_format)
+        logger.addHandler(file_handler)
+    except (PermissionError, OSError) as e:
+        sys.stderr.write(f"WARNING: Could not create file handler for logging: {e}\n")
+        sys.stderr.write("Continuing with console logging only.\n")
 
     # Prevent propagation to root logger
     logger.propagate = False
