@@ -5,8 +5,8 @@ import { Input } from "@/components/Input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select"
 import { MoreHorizontal, Edit, Trash2, Search } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/DropdownMenu"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover"
-import { Calendar } from "@/components/Calendar"
+// import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover" // Unused
+// import { Calendar } from "@/components/Calendar" // Unused
 import {
   AlertDialog,
   AlertDialogAction,
@@ -214,25 +214,20 @@ export function RecentTransactions({
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full sm:w-auto sm:min-w-[140px] justify-start bg-transparent">
-                    📅
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto max-w-[320px] sm:max-w-sm md:max-w-md p-0">
-                  <Calendar
-                    selected={dateFilter}
-                    onSelect={setDateFilter}
-                    className="[--cell-size:1.75rem] md:[--cell-size:2.5rem]"
-                  />
-                  <div className="p-3 border-t">
-                    <Button variant="outline" size="sm" onClick={() => setDateFilter(undefined)} className="w-full">
-                      {language === "pt" ? "Limpar Filtro" : "Clear Filter"}
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <Input
+                type="date"
+                value={dateFilter ? format(dateFilter, "yyyy-MM-dd") : ""}
+                onChange={(e) => {
+                  const value = e.target.value
+                  if (value) {
+                    const [year, month, day] = value.split("-").map(Number)
+                    setDateFilter(new Date(year, month - 1, day))
+                  } else {
+                    setDateFilter(undefined)
+                  }
+                }}
+                className="w-full sm:w-auto sm:min-w-[140px] bg-transparent"
+              />
 
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-full sm:w-48">
