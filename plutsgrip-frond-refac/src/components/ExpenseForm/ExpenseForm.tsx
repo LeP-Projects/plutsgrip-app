@@ -7,9 +7,9 @@ import { Input } from "@/components/Input"
 import { Label } from "@/components/Label"
 import { Textarea } from "@/components/Textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select"
-import { CalendarIcon, PlusCircle, AlertCircle } from "lucide-react"
-import { Calendar } from "@/components/Calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover"
+import { PlusCircle, AlertCircle } from "lucide-react"
+// import { Calendar } from "@/components/Calendar" // Unused now
+// import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover" // Unused now
 import { format } from "date-fns"
 import { useCurrency } from "@/contexts/CurrencyContext"
 import { cn } from "@/lib/utils"
@@ -70,7 +70,6 @@ interface ExpenseFormProps {
 
 export function ExpenseForm({ language, defaultType, onTransactionCreated }: ExpenseFormProps) {
   const [date, setDate] = useState<Date>()
-  const [calendarOpen, setCalendarOpen] = useState(false)
   const { currency } = useCurrency()
 
   // Busca categorias da API
@@ -228,34 +227,29 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
               <Label>
                 {t.date} {t.required}
               </Label>
-              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal bg-transparent",
-                      errors.date && "border-red-500",
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : t.pickDate}
-                    {errors.date && <AlertCircle className="ml-auto h-4 w-4 text-red-500" />}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    selected={date}
-                    onSelect={(selectedDate: Date | undefined) => {
-                      setDate(selectedDate)
-                      setCalendarOpen(false) // Close after selection
-                      if (errors.date) {
-                        setErrors((prev) => ({ ...prev, date: false }))
-                      }
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <div className="relative">
+                <Input
+                  type="date"
+                  required
+                  value={date ? format(date, "yyyy-MM-dd") : ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (!value) {
+                      setDate(undefined);
+                      return;
+                    }
+                    // Create date handling timezone properly
+                    const [year, month, day] = value.split('-').map(Number);
+                    const newDate = new Date(year, month - 1, day);
+                    setDate(newDate);
+
+                    if (errors.date) {
+                      setErrors((prev) => ({ ...prev, date: false }));
+                    }
+                  }}
+                  className={cn(errors.date && "border-red-500 focus-visible:ring-red-500")}
+                />
+              </div>
               {errors.date && <p className="text-sm text-red-500">Este campo é obrigatório</p>}
             </div>
 
