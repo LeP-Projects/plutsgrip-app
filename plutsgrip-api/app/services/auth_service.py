@@ -52,40 +52,7 @@ class AuthService:
         user = await self.user_repo.create(user_dict)
         await self.db.commit()
 
-        # Copy default categories to the new user
-        await self._copy_default_categories_to_user(user.id)
-
         return user
-
-    async def _copy_default_categories_to_user(self, user_id: int) -> None:
-        """
-        Copy all default categories to a new user
-
-        Args:
-            user_id: ID of the new user
-        """
-        from sqlalchemy import select
-        from app.models.category import Category
-
-        # Get all default categories
-        result = await self.db.execute(
-            select(Category).where(Category.is_default == True)
-        )
-        default_categories = result.scalars().all()
-
-        # Create copies for the user
-        for cat in default_categories:
-            new_category = Category(
-                name=cat.name,
-                type=cat.type,
-                color=cat.color,
-                icon=cat.icon,
-                is_default=False,
-                user_id=user_id
-            )
-            self.db.add(new_category)
-
-        await self.db.commit()
 
     async def authenticate_user(self, login_data: UserLoginRequest) -> Optional[User]:
         """
