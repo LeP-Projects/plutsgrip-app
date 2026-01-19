@@ -253,15 +253,8 @@ export function CategoryManager({ language }: CategoryManagerProps) {
                   <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)} disabled={isLoading}>
                     {t.cancel}
                   </Button>
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t.createCategory}
-                      </>
-                    ) : (
-                      t.createCategory
-                    )}
+                  <Button type="submit" loading={isLoading} loadingText={t.createCategory}>
+                    {t.createCategory}
                   </Button>
                 </div>
               </form>
@@ -295,15 +288,8 @@ export function CategoryManager({ language }: CategoryManagerProps) {
               <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)} disabled={isLoading}>
                 {t.cancel}
               </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t.updateCategory}
-                  </>
-                ) : (
-                  t.updateCategory
-                )}
+              <Button type="submit" loading={isLoading} loadingText={t.updateCategory}>
+                {t.updateCategory}
               </Button>
             </div>
           </form>

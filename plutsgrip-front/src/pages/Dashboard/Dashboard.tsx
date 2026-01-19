@@ -34,6 +34,7 @@ import { CurrencySelector } from "@/components/CurrencySelector"
 import { ReportsSection } from "@/components/ReportsSection"
 import { useCurrency } from "@/contexts/CurrencyContext"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useSwipe } from "@/hooks/use-swipe"
 
 const translations = {
   en: {
@@ -127,6 +128,16 @@ export function Dashboard() {
     timeRange: "thisMonth",
     category: "all",
     type: "all",
+  })
+
+  // Swipe to close sidebar on mobile
+  const sidebarRef = useSwipe<HTMLElement>({
+    onSwipeLeft: () => {
+      if (isMobile && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false)
+      }
+    },
+    threshold: 50,
   })
 
   const handleTransactionCreated = () => {
@@ -247,10 +258,11 @@ export function Dashboard() {
         />
       )}
 
-      {/* Sidebar - Desktop: fixed, Mobile: overlay drawer */}
+      {/* Sidebar - Desktop: fixed, Mobile: overlay drawer with swipe support */}
       <aside
+        ref={isMobile ? sidebarRef : undefined}
         className={`
-          ${isMobile ? "fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out" : "w-64"}
+          ${isMobile ? "fixed inset-y-0 left-0 z-50 w-[85vw] max-w-64 transform transition-transform duration-300 ease-in-out" : "w-64"}
           ${isMobile && !isMobileMenuOpen ? "-translate-x-full" : "translate-x-0"}
           bg-sidebar border-r border-sidebar-border
         `}
@@ -339,7 +351,7 @@ export function Dashboard() {
               variant="outline"
               size="sm"
               onClick={() => setIsMobileMenuOpen(true)}
-              className="mr-2"
+              className="mr-2 min-h-[44px] min-w-[44px]"
             >
               <Menu className="h-5 w-5" />
             </Button>

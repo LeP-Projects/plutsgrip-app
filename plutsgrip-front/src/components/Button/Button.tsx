@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 /**
@@ -8,7 +9,7 @@ import { cn } from "@/lib/utils"
  * Define estilos base e variações de: variant, size, etc
  */
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.97] hover:shadow-sm",
   {
     variants: {
       variant: {
@@ -42,30 +43,50 @@ export const buttonVariants = cva(
  */
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean
+  /** Mostra spinner e desabilita o botão */
+  loading?: boolean
+  /** Texto alternativo durante loading (ex: "Salvando...") */
+  loadingText?: string
 }
 
 /**
  * Componente Button
  * Botão reutilizável com múltiplas variantes de estilo e tamanho
+ * Suporta estado de loading com spinner
  *
  * @example
  * ```tsx
- * <Button variant="default" size="lg">
- *   Clique aqui
+ * <Button variant="default" size="lg" loading={isSubmitting}>
+ *   Salvar
+ * </Button>
+ * 
+ * <Button loading={true} loadingText="Salvando...">
+ *   Salvar
  * </Button>
  * ```
  */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, loading = false, loadingText, children, disabled, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        disabled={disabled || loading}
         {...props}
-      />
+      >
+        {loading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {loadingText || children}
+          </>
+        ) : (
+          children
+        )}
+      </Comp>
     )
   }
 )

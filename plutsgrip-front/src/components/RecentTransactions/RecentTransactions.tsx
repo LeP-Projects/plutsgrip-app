@@ -3,7 +3,7 @@ import { Badge } from "@/components/Badge"
 import { Button } from "@/components/Button"
 import { Input } from "@/components/Input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select"
-import { MoreHorizontal, Edit, Trash2, Search } from "lucide-react"
+import { MoreHorizontal, Edit, Trash2, Search, Loader2, RefreshCw } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/DropdownMenu"
 // import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover" // Unused
 // import { Calendar } from "@/components/Calendar" // Unused
@@ -25,6 +25,8 @@ import { useState, useEffect, useCallback } from "react"
 import { format } from "date-fns"
 import { useApi } from "@/hooks/useApi"
 import { apiService, type Transaction } from "@/services/api"
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 
 
@@ -139,6 +141,17 @@ export function RecentTransactions({
   const [dateFilter, setDateFilter] = useState<Date>()
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const isMobile = useIsMobile()
+
+  // Pull-to-refresh handler
+  const handlePullRefresh = useCallback(async () => {
+    await refetch()
+  }, [refetch])
+
+  const { ref: pullToRefreshRef, isPulling, isRefreshing, pullProgress } = usePullToRefresh<HTMLDivElement>({
+    onRefresh: handlePullRefresh,
+    threshold: 80,
+  })
 
   // Atualiza transactions quando dados da API chegam
   useEffect(() => {
@@ -260,13 +273,37 @@ export function RecentTransactions({
         )}
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        {/* Pull-to-refresh indicator */}
+        {isMobile && (isPulling || isRefreshing) && (
+          <div
+            className="flex items-center justify-center py-4 transition-all duration-200"
+            style={{
+              opacity: pullProgress,
+              transform: `translateY(${Math.min(pullProgress * 20, 20)}px)`
+            }}
+          >
+            <RefreshCw
+              className={`h-5 w-5 text-primary ${isRefreshing ? 'animate-spin' : ''}`}
+              style={{
+                transform: `rotate(${pullProgress * 360}deg)`,
+                transition: isRefreshing ? 'none' : 'transform 0.1s ease-out'
+              }}
+            />
+            <span className="ml-2 text-sm text-muted-foreground">
+              {isRefreshing ? 'Atualizando...' : 'Puxe para atualizar'}
+            </span>
+          </div>
+        )}
+        <div
+          ref={isMobile && showAll ? pullToRefreshRef : undefined}
+          className="space-y-4"
+        >
           {displayTransactions.map((transaction) => {
             const isExpense = transaction.type?.toLowerCase() === "expense"
             return (
               <div
                 key={transaction.id}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 border border-border rounded-lg hover:bg-muted/50 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] hover:shadow-sm cursor-pointer"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start gap-2">
@@ -379,7 +416,7 @@ export function RecentTransactions({
               }}
               className="space-y-4"
             >
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="description">
                     {t.description} {t.required}
@@ -400,7 +437,7 @@ export function RecentTransactions({
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category">
                     {t.category} {t.required}

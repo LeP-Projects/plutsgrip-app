@@ -172,7 +172,7 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="description">
                 {t.description} {t.required}
@@ -191,9 +191,9 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
                   className={cn(errors.description && "border-red-500 focus-visible:ring-red-500")}
                   required
                 />
-                {errors.description && <AlertCircle className="absolute right-3 top-3 h-4 w-4 text-red-500" />}
+                {errors.description && <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />}
               </div>
-              {errors.description && <p className="text-sm text-red-500">Este campo é obrigatório</p>}
+              {errors.description && <p className="text-sm text-red-500 mt-1">Este campo é obrigatório</p>}
             </div>
 
             <div className="space-y-2">
@@ -216,13 +216,13 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
                   className={cn(errors.amount && "border-red-500 focus-visible:ring-red-500")}
                   required
                 />
-                {errors.amount && <AlertCircle className="absolute right-3 top-3 h-4 w-4 text-red-500" />}
+                {errors.amount && <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />}
               </div>
-              {errors.amount && <p className="text-sm text-red-500">Este campo é obrigatório</p>}
+              {errors.amount && <p className="text-sm text-red-500 mt-1">Este campo é obrigatório</p>}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>
                 {t.date} {t.required}
@@ -250,7 +250,7 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
                   className={cn(errors.date && "border-red-500 focus-visible:ring-red-500")}
                 />
               </div>
-              {errors.date && <p className="text-sm text-red-500">Este campo é obrigatório</p>}
+              {errors.date && <p className="text-sm text-red-500 mt-1">Este campo é obrigatório</p>}
             </div>
 
             <div className="space-y-2">
@@ -268,7 +268,7 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
                   }}
                   required
                 >
-                  <SelectTrigger className={cn(errors.category && "border-red-500")}>
+                  <SelectTrigger className={cn("min-h-[44px] sm:min-h-[36px]", errors.category && "border-red-500")}>
                     <SelectValue placeholder={t.selectCategory} />
                     {errors.category && <AlertCircle className="h-4 w-4 text-red-500" />}
                   </SelectTrigger>
@@ -281,7 +281,7 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
                   </SelectContent>
                 </Select>
               </div>
-              {errors.category && <p className="text-sm text-red-500">Este campo é obrigatório</p>}
+              {errors.category && <p className="text-sm text-red-500 mt-1">Este campo é obrigatório</p>}
             </div>
           </div>
 
@@ -301,7 +301,7 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
                   }}
                   required
                 >
-                  <SelectTrigger className={cn(errors.type && "border-red-500")}>
+                  <SelectTrigger className={cn("min-h-[44px] sm:min-h-[36px]", errors.type && "border-red-500")}>
                     <SelectValue placeholder={t.selectType} />
                     {errors.type && <AlertCircle className="h-4 w-4 text-red-500" />}
                   </SelectTrigger>
@@ -311,7 +311,7 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
                   </SelectContent>
                 </Select>
               </div>
-              {errors.type && <p className="text-sm text-red-500">Este campo é obrigatório</p>}
+              {errors.type && <p className="text-sm text-red-500 mt-1">Este campo é obrigatório</p>}
             </div>
           )}
 
@@ -326,9 +326,15 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={creatingTransaction || categoriesLoading}>
+          <Button
+            type="submit"
+            className="w-full"
+            loading={creatingTransaction}
+            loadingText="Criando..."
+            disabled={categoriesLoading}
+          >
             <PlusCircle className="mr-2 h-4 w-4" />
-            {creatingTransaction ? "Criando..." : t.addTransaction}
+            {t.addTransaction}
           </Button>
         </form>
       </CardContent>
