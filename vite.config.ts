@@ -5,10 +5,12 @@ import tailwindcss from "@tailwindcss/vite"
 
 // https://vite.dev/config/
 export default defineConfig({
+  root: path.resolve(__dirname, './plutsgrip-front'),
+  publicDir: path.resolve(__dirname, './plutsgrip-front/public'),
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, './plutsgrip-front/src'),
     },
   },
   server: {
