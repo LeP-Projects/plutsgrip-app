@@ -1,95 +1,24 @@
-# ============================================================
-# PLUTUSGRIP - GITIGNORE
-# ============================================================
-
-# ==================== Environment Files ====================
-# Never commit environment files (except examples)
-.env
-!.env.example
-!.env.dev
-!.env.prod
-
-# ==================== Nginx ====================
-# SSL certificates and private keys
-nginx/certs/*
-!nginx/certs/.gitkeep
-nginx/logs/*
-
-# ==================== Docker ====================
-# Docker volumes and data
-postgres_data/
-postgres_data_dev/
-postgres_data_prod/
-pgadmin_data/
-docker-compose.override.yml
-
-# ==================== Python ====================
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-
-# Virtual environments
-.venv/
-venv/
-ENV/
-env/
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-
-# IDEs
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-
 # Logs
+logs
 *.log
-logs/
-plutsgrip-api/logs/
-
-# Databases
-*.db
-*.sqlite
-*.sqlite3
-
-# OS
-.DS_Store
-Thumbs.db
-
-# ==================== Node / Frontend ====================
-node_modules/
-dist/
-build/
-.next/
-out/
-
-# Testing
-coverage/
-
-# Misc
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Cache
-.eslintcache
-.stylelintcache
+node_modules
+dist
+dist-ssr
+*.local
 
-# ==================== Backup Files ====================
-*.bak
-*.backup
-*.old
-*.orig
-
-# ==================== Temporary Files ====================
-*.tmp
-*.temp
-.cache/
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
