@@ -24,7 +24,7 @@ RUN npm run build
 FROM nginx:alpine
 
 # Copy built application to Nginx
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/plutsgrip-front/dist /usr/share/nginx/html
 
 # Copy Nginx configuration
 COPY <<EOF /etc/nginx/conf.d/default.conf
