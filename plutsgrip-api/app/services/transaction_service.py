@@ -1,6 +1,7 @@
 """
 Transaction service for business logic
 """
+from datetime import date
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.transaction import Transaction
@@ -38,6 +39,7 @@ class TransactionService:
         }
 
         transaction = await self.transaction_repo.create(transaction_dict)
+        await self.db.commit()
 
         return transaction
 
@@ -47,7 +49,9 @@ class TransactionService:
         skip: int = 0,
         limit: int = 20,
         transaction_type: Optional[str] = None,
-        category_id: Optional[int] = None
+        category_id: Optional[int] = None,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None
     ) -> List[Transaction]:
         """
         Get transactions for a user with filters
@@ -69,7 +73,36 @@ class TransactionService:
             skip=skip,
             limit=limit,
             transaction_type=transaction_type,
-            category_id=category_id
+            category_id=category_id,
+            start_date=start_date,
+            end_date=end_date
+        )
+
+    async def count_user_transactions(
+        self,
+        user_id: int,
+        transaction_type: Optional[str] = None,
+        category_id: Optional[int] = None,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None
+    ) -> int:
+        """
+        Count transactions for a user with filters
+
+        Args:
+            user_id: User ID
+            transaction_type: Optional type filter
+            category_id: Optional category filter
+
+        Returns:
+            Total count of matching transactions
+        """
+        return await self.transaction_repo.count_by_user(
+            user_id=user_id,
+            transaction_type=transaction_type,
+            category_id=category_id,
+            start_date=start_date,
+            end_date=end_date
         )
 
     async def update_transaction(
@@ -99,6 +132,7 @@ class TransactionService:
         # Update only provided fields
         update_dict = transaction_data.model_dump(exclude_unset=True)
         updated_transaction = await self.transaction_repo.update(transaction_id, update_dict)
+        await self.db.commit()
 
         return updated_transaction
 
@@ -119,7 +153,9 @@ class TransactionService:
         if not transaction or transaction.user_id != user_id:
             return False
 
-        return await self.transaction_repo.delete(transaction_id)
+        deleted = await self.transaction_repo.delete(transaction_id)
+        await self.db.commit()
+        return deleted
 
     async def get_transaction_by_id(
         self,

@@ -6,6 +6,7 @@ POST /api/transactions - Create new transaction
 PUT /api/transactions/:id - Update transaction
 DELETE /api/transactions/:id - Delete transaction
 """
+from datetime import date
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,16 +31,13 @@ async def list_transactions(
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
     type: Optional[str] = Query(None, description="Filter by type (income/expense)"),
     category: Optional[int] = Query(None, description="Filter by category ID"),
+    start_date: Optional[date] = Query(None, description="Filter by start date"),
+    end_date: Optional[date] = Query(None, description="Filter by end date"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    List all transactions for current user with optional filters
-
-    TODO: Implement filtering and pagination
-    - Apply filters (type, category)
-    - Implement pagination
-    - Return transactions with total count
+    List all transactions for current user with optional filters and pagination
     """
     transaction_service = TransactionService(db)
 
@@ -58,11 +56,18 @@ async def list_transactions(
         skip=skip,
         limit=page_size,
         transaction_type=transaction_type,
-        category_id=category
+        category_id=category,
+        start_date=start_date,
+        end_date=end_date
     )
 
-    # TODO: Get total count for pagination
-    total = len(transactions)
+    total = await transaction_service.count_user_transactions(
+        user_id=current_user.id,
+        transaction_type=transaction_type,
+        category_id=category,
+        start_date=start_date,
+        end_date=end_date
+    )
 
     return TransactionListResponse(
         transactions=[TransactionResponse.model_validate(t) for t in transactions],
@@ -102,14 +107,7 @@ async def create_transaction(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    Create a new transaction
-
-    TODO: Implement transaction creation
-    - Validate input data
-    - Create transaction in database
-    - Return created transaction
-    """
+    """Create a new transaction"""
     transaction_service = TransactionService(db)
 
     transaction = await transaction_service.create_transaction(
@@ -127,14 +125,7 @@ async def update_transaction(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    Update a transaction
-
-    TODO: Implement transaction update
-    - Verify transaction belongs to current user
-    - Update transaction data
-    - Return updated transaction
-    """
+    """Update a transaction"""
     transaction_service = TransactionService(db)
 
     transaction = await transaction_service.update_transaction(
@@ -158,14 +149,7 @@ async def delete_transaction(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    Delete a transaction
-
-    TODO: Implement transaction deletion
-    - Verify transaction belongs to current user
-    - Delete transaction from database
-    - Return success response
-    """
+    """Delete a transaction"""
     transaction_service = TransactionService(db)
 
     deleted = await transaction_service.delete_transaction(

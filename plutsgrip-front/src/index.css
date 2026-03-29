@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap");
+
 @import "tailwindcss";
 
 @import "tw-animate-css";
@@ -5,60 +7,59 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* Light mode colors */
-  --color-border: oklch(0.922 0.013 252.417);
-  --color-input: oklch(0.984 0.008 264.376);
-  --color-ring: oklch(0.395 0.094 200.096 / 0.5);
-  --color-background: oklch(1 0 0);
-  --color-foreground: oklch(0.556 0.014 258.338);
-  --color-primary: oklch(0.395 0.094 200.096);
-  --color-primary-foreground: oklch(1 0 0);
-  --color-secondary: oklch(0.647 0.167 70.853);
-  --color-secondary-foreground: oklch(1 0 0);
-  --color-destructive: oklch(0.608 0.214 41.103);
-  --color-destructive-foreground: oklch(1 0 0);
-  --color-muted: oklch(0.984 0.024 102.212);
-  --color-muted-foreground: oklch(0.478 0.015 252.417);
-  --color-accent: oklch(0.647 0.167 70.853);
-  --color-accent-foreground: oklch(1 0 0);
-  --color-popover: oklch(1 0 0);
-  --color-popover-foreground: oklch(0.478 0.015 252.417);
-  --color-card: oklch(0.984 0.013 180.695);
-  --color-card-foreground: oklch(0.478 0.015 252.417);
-  --color-sidebar: oklch(1 0 0);
-  --color-sidebar-foreground: oklch(0.478 0.015 252.417);
-  --color-sidebar-border: oklch(0.922 0.013 252.417);
+  --color-border: oklch(0.89 0.03 87);
+  --color-input: oklch(0.97 0.015 80);
+  --color-ring: oklch(0.51 0.12 212 / 0.4);
+  --color-background: oklch(0.98 0.015 86);
+  --color-foreground: oklch(0.31 0.03 229);
+  --color-primary: oklch(0.5 0.12 212);
+  --color-primary-foreground: oklch(0.99 0.005 90);
+  --color-secondary: oklch(0.73 0.12 74);
+  --color-secondary-foreground: oklch(0.25 0.03 229);
+  --color-destructive: oklch(0.58 0.2 32);
+  --color-destructive-foreground: oklch(0.99 0.005 90);
+  --color-muted: oklch(0.955 0.015 82);
+  --color-muted-foreground: oklch(0.48 0.025 226);
+  --color-accent: oklch(0.84 0.07 77);
+  --color-accent-foreground: oklch(0.25 0.03 229);
+  --color-popover: oklch(0.995 0.005 90);
+  --color-popover-foreground: oklch(0.31 0.03 229);
+  --color-card: oklch(0.995 0.005 90 / 0.9);
+  --color-card-foreground: oklch(0.31 0.03 229);
+  --color-sidebar: oklch(0.965 0.02 80 / 0.92);
+  --color-sidebar-foreground: oklch(0.3 0.03 229);
+  --color-sidebar-border: oklch(0.89 0.03 87);
 
-  --radius: 0.5rem;
+  --radius: 1.1rem;
 
-  --font-open-sans: "Open Sans", sans-serif;
-  --font-work-sans: "Work Sans", sans-serif;
+  --font-open-sans: "Manrope", sans-serif;
+  --font-work-sans: "Fraunces", serif;
 }
 
 /* Dark mode colors */
 .dark {
-  --color-background: oklch(0.145 0 0);
-  --color-foreground: oklch(0.985 0 0);
-  --color-card: oklch(0.205 0 0);
-  --color-card-foreground: oklch(0.985 0 0);
-  --color-popover: oklch(0.205 0 0);
-  --color-popover-foreground: oklch(0.985 0 0);
-  --color-primary: oklch(0.647 0.167 70.853);
-  --color-primary-foreground: oklch(0.145 0 0);
-  --color-secondary: oklch(0.395 0.094 200.096);
-  --color-secondary-foreground: oklch(1 0 0);
-  --color-muted: oklch(0.269 0 0);
-  --color-muted-foreground: oklch(0.708 0 0);
-  --color-accent: oklch(0.647 0.167 70.853);
-  --color-accent-foreground: oklch(0.145 0 0);
-  --color-destructive: oklch(0.608 0.214 41.103);
-  --color-destructive-foreground: oklch(1 0 0);
-  --color-border: oklch(0.269 0 0);
-  --color-input: oklch(0.269 0 0);
-  --color-ring: oklch(0.647 0.167 70.853 / 0.5);
-  --color-sidebar: oklch(0.205 0 0);
-  --color-sidebar-foreground: oklch(0.985 0 0);
-  --color-sidebar-border: oklch(0.269 0 0);
+  --color-background: oklch(0.2 0.02 246);
+  --color-foreground: oklch(0.95 0.01 84);
+  --color-card: oklch(0.27 0.02 244 / 0.86);
+  --color-card-foreground: oklch(0.95 0.01 84);
+  --color-popover: oklch(0.24 0.02 244);
+  --color-popover-foreground: oklch(0.95 0.01 84);
+  --color-primary: oklch(0.72 0.1 77);
+  --color-primary-foreground: oklch(0.2 0.02 246);
+  --color-secondary: oklch(0.58 0.12 206);
+  --color-secondary-foreground: oklch(0.95 0.01 84);
+  --color-muted: oklch(0.31 0.015 247);
+  --color-muted-foreground: oklch(0.77 0.02 80);
+  --color-accent: oklch(0.43 0.07 198);
+  --color-accent-foreground: oklch(0.95 0.01 84);
+  --color-destructive: oklch(0.65 0.19 30);
+  --color-destructive-foreground: oklch(0.95 0.01 84);
+  --color-border: oklch(0.35 0.02 245);
+  --color-input: oklch(0.31 0.015 247);
+  --color-ring: oklch(0.72 0.1 77 / 0.4);
+  --color-sidebar: oklch(0.24 0.02 244 / 0.92);
+  --color-sidebar-foreground: oklch(0.95 0.01 84);
+  --color-sidebar-border: oklch(0.35 0.02 245);
 }
 
 @layer base {
@@ -70,6 +71,11 @@
     font-family: var(--font-open-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     margin: 0;
     min-height: 100vh;
+    background-image:
+      radial-gradient(circle at top left, rgba(213, 179, 94, 0.16), transparent 28%),
+      radial-gradient(circle at 85% 10%, rgba(52, 125, 164, 0.18), transparent 25%),
+      linear-gradient(180deg, rgba(255, 252, 244, 0.96), rgba(248, 243, 230, 0.9));
+    background-attachment: fixed;
   }
 }
 
@@ -79,4 +85,96 @@
 
 .font-serif {
   font-family: var(--font-work-sans), Georgia, serif;
+}
+
+.dark body {
+  background-image:
+    radial-gradient(circle at top left, rgba(197, 165, 92, 0.12), transparent 24%),
+    radial-gradient(circle at 85% 10%, rgba(63, 120, 176, 0.18), transparent 24%),
+    linear-gradient(180deg, rgba(28, 32, 48, 0.98), rgba(20, 24, 37, 0.98));
+}
+
+@layer components {
+  .panel-surface {
+    @apply rounded-[28px] border border-border/80 bg-card/90 shadow-[0_24px_80px_-36px_rgba(31,42,68,0.35)] backdrop-blur;
+  }
+
+  .page-hero {
+    @apply relative overflow-hidden rounded-[28px] border border-border/80 bg-card/90 p-6 shadow-[0_24px_80px_-36px_rgba(31,42,68,0.35)] backdrop-blur md:p-8;
+  }
+
+  .page-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(135deg, rgba(52, 125, 164, 0.1), transparent 36%),
+      radial-gradient(circle at right bottom, rgba(213, 179, 94, 0.16), transparent 24%);
+    pointer-events: none;
+  }
+
+  .metric-card {
+    @apply relative overflow-hidden rounded-[28px] border border-border/80 bg-card/90 shadow-[0_24px_80px_-36px_rgba(31,42,68,0.35)] backdrop-blur;
+  }
+
+  .public-stage {
+    @apply relative min-h-screen overflow-hidden bg-background text-foreground;
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(52, 125, 164, 0.22), transparent 26%),
+      radial-gradient(circle at 84% 14%, rgba(213, 179, 94, 0.2), transparent 24%),
+      radial-gradient(circle at 76% 78%, rgba(52, 125, 164, 0.12), transparent 22%),
+      linear-gradient(145deg, rgba(255, 252, 244, 0.94), rgba(246, 240, 226, 0.84));
+  }
+
+  .dark .public-stage {
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(213, 179, 94, 0.14), transparent 24%),
+      radial-gradient(circle at 84% 14%, rgba(82, 138, 188, 0.22), transparent 23%),
+      radial-gradient(circle at 76% 78%, rgba(66, 107, 148, 0.18), transparent 22%),
+      linear-gradient(160deg, rgba(20, 25, 38, 0.98), rgba(15, 19, 30, 0.96));
+  }
+
+  .public-stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(115deg, rgba(255, 255, 255, 0.28), transparent 42%),
+      repeating-linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.03) 0,
+        rgba(255, 255, 255, 0.03) 1px,
+        transparent 1px,
+        transparent 82px
+      );
+    pointer-events: none;
+  }
+
+  .glass-panel {
+    @apply relative rounded-[32px] border border-white/35 bg-white/45 shadow-[0_30px_120px_-40px_rgba(18,31,52,0.38)] backdrop-blur-2xl;
+  }
+
+  .dark .glass-panel {
+    @apply border-white/10 bg-white/6;
+    box-shadow: 0 30px 120px -40px rgba(0, 0, 0, 0.5);
+  }
+
+  .glass-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent 38%),
+      radial-gradient(circle at right bottom, rgba(213, 179, 94, 0.12), transparent 24%);
+    pointer-events: none;
+  }
+
+  .public-grid {
+    background-image:
+      linear-gradient(rgba(68, 84, 110, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(68, 84, 110, 0.08) 1px, transparent 1px);
+    background-size: 54px 54px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 92%);
+  }
 }

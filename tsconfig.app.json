@@ -17,7 +17,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./src/*"
+        "./plutsgrip-front/src/*"
       ]
     },
     /* Bundler mode */
@@ -36,12 +36,12 @@
     "noUncheckedSideEffectImports": true
   },
   "include": [
-    "src"
+    "plutsgrip-front/src"
   ],
   "exclude": [
-    "src/**/__tests__/*",
-    "src/**/*.test.tsx",
-    "src/**/*.test.ts",
-    "src/test/**/*"
+    "plutsgrip-front/src/**/__tests__/*",
+    "plutsgrip-front/src/**/*.test.tsx",
+    "plutsgrip-front/src/**/*.test.ts",
+    "plutsgrip-front/src/test/**/*"
   ]
 }

@@ -1,115 +1,89 @@
+import { useCallback, useEffect, useMemo } from "react"
+import { AlertCircle } from "lucide-react"
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/Chart"
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts"
-import { useMemo, useCallback } from "react"
 import { useApi } from "@/hooks/useApi"
 import { apiService } from "@/services/api"
-import { AlertCircle } from "lucide-react"
-
-// Mock data removed - now fetching from API
+import { resolveDateRange, type ReportFilterState } from "@/utils/report-filters"
 
 const chartConfig = {
   income: {
     label: "Income",
-    color: "#10b981", // Emerald green
+    color: "#10b981",
   },
   expenses: {
     label: "Expenses",
-    color: "#f59e0b", // Amber
+    color: "#f59e0b",
   },
 }
 
 const translations = {
   en: {
     incomeVsExpenses: "Income vs Expenses",
-    monthlyComparison: "Monthly comparison of your income and expenses",
+    selectedPeriodComparison: "Comparison for the selected period",
+    selectedPeriod: "Selected period",
+    loadError: "Error loading comparison",
   },
   pt: {
     incomeVsExpenses: "Entradas vs Saídas",
-    monthlyComparison: "Comparação mensal das suas entradas e saídas",
+    selectedPeriodComparison: "Comparação para o período selecionado",
+    selectedPeriod: "Período selecionado",
+    loadError: "Erro ao carregar comparação",
   },
 }
 
 interface ColumnChartProps {
   language: string
-  filters?: {
-    timeRange: string
-    category: string
-    type: string
-    startDate?: Date
-    endDate?: Date
-  }
+  filters?: ReportFilterState
 }
 
-export function ColumnChart({ language, filters }: ColumnChartProps) {
+export function ColumnChart({ language, filters = { timeRange: "thisMonth", category: "all", type: "all" } }: ColumnChartProps) {
   const t = translations[language as keyof typeof translations]
+  const { startDate, endDate } = resolveDateRange(filters)
 
-  // Busca todas as transações da API
-  const fetchTransactions = useCallback(
-    () => apiService.listTransactions(1, 100),
-    []
+  const fetchSummary = useCallback(
+    () => apiService.getFinancialSummary(startDate, endDate),
+    [startDate, endDate]
   )
 
-  const { data: transactionsData, loading: transactionsLoading, error: transactionsError } = useApi(
-    fetchTransactions,
-    true // fetch immediately
+  const { data, loading, error, refetch } = useApi(fetchSummary, true)
+
+  useEffect(() => {
+    refetch().catch(() => {
+      // Hook already stores the error state
+    })
+  }, [fetchSummary, refetch])
+
+  const chartData = useMemo(
+    () => [
+      {
+        month: t.selectedPeriod,
+        income: data?.total_income || 0,
+        expenses: data?.total_expense || 0,
+      },
+    ],
+    [data, t.selectedPeriod]
   )
 
-  const filteredData = useMemo(() => {
-    const transactions = transactionsData?.transactions || []
-    let filtered = transactions
-
-    // Apply category filter
-    if (filters?.category && filters.category !== "all") {
-      filtered = filtered.filter((transaction) => transaction.category?.name === filters.category)
-    }
-
-    // Apply type filter
-    if (filters?.type && filters.type !== "all") {
-      filtered = filtered.filter((transaction) => transaction.type === filters.type)
-    }
-
-    // Group by month and separate income/expenses
-    const monthlyData: { [key: string]: any } = {}
-    filtered.forEach((transaction) => {
-      const date = new Date(transaction.date)
-      const monthKey = date.toLocaleString("pt-BR", { month: "short" })
-
-      if (!monthlyData[monthKey]) {
-        monthlyData[monthKey] = { month: monthKey, income: 0, expenses: 0 }
-      }
-      if (transaction.type === "income") {
-        monthlyData[monthKey].income += transaction.amount
-      } else {
-        monthlyData[monthKey].expenses += transaction.amount
-      }
-    })
-
-    return Object.values(monthlyData).sort((a, b) => {
-      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-      return months.indexOf(a.month) - months.indexOf(b.month)
-    })
-  }, [filters, transactionsData])
-
-  console.log("[ColumnChart] filtered data:", filteredData)
-
-  if (transactionsError) {
+  if (error) {
     return (
       <Card>
         <CardHeader>
           <CardTitle className="font-serif">{t.incomeVsExpenses}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-2 text-destructive py-8">
+          <div className="flex items-center gap-2 py-8 text-destructive">
             <AlertCircle className="h-5 w-5" />
-            <p className="text-sm">Erro ao carregar comparação</p>
+            <p className="text-sm">{t.loadError}</p>
           </div>
         </CardContent>
       </Card>
     )
   }
 
-  if (transactionsLoading) {
+  if (loading) {
     return (
       <Card>
         <CardHeader>
@@ -117,7 +91,7 @@ export function ColumnChart({ language, filters }: ColumnChartProps) {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-primary"></div>
           </div>
         </CardContent>
       </Card>
@@ -128,12 +102,12 @@ export function ColumnChart({ language, filters }: ColumnChartProps) {
     <Card>
       <CardHeader>
         <CardTitle className="font-serif">{t.incomeVsExpenses}</CardTitle>
-        <CardDescription>{t.monthlyComparison}</CardDescription>
+        <CardDescription>{t.selectedPeriodComparison}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={filteredData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <XAxis dataKey="month" tickLine={false} axisLine={false} className="text-xs" />
               <YAxis tickLine={false} axisLine={false} className="text-xs" />
               <ChartTooltip content={<ChartTooltipContent />} />
