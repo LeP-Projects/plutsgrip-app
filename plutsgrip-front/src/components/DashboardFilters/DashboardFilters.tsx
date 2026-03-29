@@ -1,8 +1,9 @@
+import { useState } from "react"
+import { Calendar, Filter, RotateCcw } from "lucide-react"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select"
 import { Button } from "@/components/Button"
-import { Calendar, Filter, RotateCcw } from "lucide-react"
-import { useState } from "react"
 
 const translations = {
   en: {
@@ -48,9 +49,10 @@ interface DashboardFiltersProps {
     type: string
   }) => void
   language: string
+  categories?: string[]
 }
 
-export function DashboardFilters({ onFiltersChange, language }: DashboardFiltersProps) {
+export function DashboardFilters({ onFiltersChange, language, categories = [] }: DashboardFiltersProps) {
   const [timeRange, setTimeRange] = useState("thisMonth")
   const [category, setCategory] = useState("all")
   const [type, setType] = useState("all")
@@ -88,16 +90,16 @@ export function DashboardFilters({ onFiltersChange, language }: DashboardFilters
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-serif flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-lg font-serif">
           <Filter className="h-5 w-5" />
           {t.dashboardFilters}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
           <Select value={timeRange} onValueChange={(value) => handleFilterChange("timeRange", value)}>
             <SelectTrigger className="h-10 sm:h-9">
-              <Calendar className="h-4 w-4 mr-2" />
+              <Calendar className="mr-2 h-4 w-4" />
               <SelectValue placeholder={t.timeRange} />
             </SelectTrigger>
             <SelectContent>
@@ -116,13 +118,11 @@ export function DashboardFilters({ onFiltersChange, language }: DashboardFilters
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t.allCategories}</SelectItem>
-              <SelectItem value="Food & Dining">Food & Dining</SelectItem>
-              <SelectItem value="Transportation">Transportation</SelectItem>
-              <SelectItem value="Shopping">Shopping</SelectItem>
-              <SelectItem value="Bills">Bills</SelectItem>
-              <SelectItem value="Income">Income</SelectItem>
-              <SelectItem value="Entertainment">Entertainment</SelectItem>
-              <SelectItem value="Healthcare">Healthcare</SelectItem>
+              {categories.map((categoryName) => (
+                <SelectItem key={categoryName} value={categoryName}>
+                  {categoryName}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -137,8 +137,8 @@ export function DashboardFilters({ onFiltersChange, language }: DashboardFilters
             </SelectContent>
           </Select>
 
-          <Button variant="outline" onClick={resetFilters} className="w-full bg-transparent h-10 sm:h-9">
-            <RotateCcw className="h-4 w-4 mr-2" />
+          <Button variant="outline" onClick={resetFilters} className="h-10 w-full bg-transparent sm:h-9">
+            <RotateCcw className="mr-2 h-4 w-4" />
             {t.reset}
           </Button>
         </div>

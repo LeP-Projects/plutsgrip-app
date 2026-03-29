@@ -1,55 +1,23 @@
 import { format } from "date-fns"
 
-/**
- * Sanitiza HTML para prevenir XSS attacks
- * Escapa caracteres especiais que podem ser usados para injeção de código
- */
+import type { Transaction } from "@/services/api"
+import type { ReportFilterState } from "@/utils/report-filters"
+
 function escapeHtml(text: string): string {
   const map: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;',
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
   }
   return text.replace(/[&<>"']/g, (char) => map[char])
-}
-
-interface Category {
-  id: string
-  name: string
-  type: "income" | "expense"
-  color?: string
-  icon?: string
-  is_default: boolean
-  user_id?: string
-  created_at?: string
-  updated_at?: string
-}
-
-interface Transaction {
-  id: string
-  description: string
-  amount: number
-  date: string
-  category?: Category | string // Allow string for mock data
-  type: "expense" | "income"
-  notes?: string
-}
-
-interface ReportFilters {
-  timeRange: string
-  category: string
-  type: string
-  startDate?: Date
-  endDate?: Date
 }
 
 const translations = {
   en: {
     financialReport: "Financial Report",
     generatedOn: "Generated on",
-    reportPeriod: "Report Period",
     filters: "Filters",
     category: "Category",
     type: "Type",
@@ -75,11 +43,11 @@ const translations = {
     thisYear: "This Year",
     lastYear: "Last Year",
     custom: "Custom Range",
+    uncategorized: "Uncategorized",
   },
   pt: {
     financialReport: "Relatório Financeiro",
     generatedOn: "Gerado em",
-    reportPeriod: "Período do Relatório",
     filters: "Filtros",
     category: "Categoria",
     type: "Tipo",
@@ -105,122 +73,34 @@ const translations = {
     thisYear: "Este Ano",
     lastYear: "Ano Passado",
     custom: "Período Personalizado",
+    uncategorized: "Sem categoria",
   },
-}
-
-// Mock transaction data - in real app, this would come from your data source
-const mockTransactions: Transaction[] = [
-  {
-    id: "1",
-    description: "Grocery Shopping",
-    amount: 85.5,
-    date: "2024-01-15",
-    category: "Food & Dining",
-    type: "expense",
-    notes: "Weekly groceries from supermarket",
-  },
-  {
-    id: "2",
-    description: "Gas Station",
-    amount: 45.0,
-    date: "2024-01-14",
-    category: "Transportation",
-    type: "expense",
-    notes: "Fuel for car",
-  },
-  {
-    id: "3",
-    description: "Salary",
-    amount: 3500.0,
-    date: "2024-01-01",
-    category: "Income",
-    type: "income",
-    notes: "Monthly salary payment",
-  },
-  {
-    id: "4",
-    description: "Coffee Shop",
-    amount: 12.5,
-    date: "2024-01-13",
-    category: "Food & Dining",
-    type: "expense",
-    notes: "Morning coffee and pastry",
-  },
-  {
-    id: "5",
-    description: "Online Shopping",
-    amount: 156.99,
-    date: "2024-01-12",
-    category: "Shopping",
-    type: "expense",
-    notes: "Electronics and accessories",
-  },
-  {
-    id: "6",
-    description: "Freelance Work",
-    amount: 800.0,
-    date: "2024-01-10",
-    category: "Income",
-    type: "income",
-    notes: "Web development project",
-  },
-]
-
-function filterTransactions(transactions: Transaction[], filters: ReportFilters): Transaction[] {
-  return transactions.filter((transaction) => {
-    // Category filter
-    const categoryName = typeof transaction.category === 'string' ? transaction.category : transaction.category?.name
-    if (filters.category !== "all" && categoryName !== filters.category) {
-      return false
-    }
-
-    // Type filter
-    if (filters.type !== "all" && transaction.type !== filters.type) {
-      return false
-    }
-
-    // Date range filter
-    const transactionDate = new Date(transaction.date)
-    const now = new Date()
-
-    switch (filters.timeRange) {
-      case "thisWeek":
-        const weekStart = new Date(now)
-        weekStart.setDate(weekStart.getDate() - weekStart.getDay())
-        return transactionDate >= weekStart
-      case "thisMonth":
-        return transactionDate.getMonth() === now.getMonth() && transactionDate.getFullYear() === now.getFullYear()
-      case "lastMonth":
-        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-        const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0)
-        return transactionDate >= lastMonth && transactionDate <= lastMonthEnd
-      case "thisYear":
-        return transactionDate.getFullYear() === now.getFullYear()
-      case "custom":
-        if (filters.startDate && filters.endDate) {
-          return transactionDate >= filters.startDate && transactionDate <= filters.endDate
-        }
-        return true
-      default:
-        return true
-    }
-  })
 }
 
 function calculateSummary(transactions: Transaction[]) {
-  const totalIncome = transactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
-  const totalExpenses = transactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
-  const netIncome = totalIncome - totalExpenses
+  const totalIncome = transactions
+    .filter((transaction) => transaction.type === "income")
+    .reduce((sum, transaction) => sum + transaction.amount, 0)
+  const totalExpenses = transactions
+    .filter((transaction) => transaction.type === "expense")
+    .reduce((sum, transaction) => sum + transaction.amount, 0)
 
-  return { totalIncome, totalExpenses, netIncome }
+  return {
+    totalIncome,
+    totalExpenses,
+    netIncome: totalIncome - totalExpenses,
+  }
 }
 
-export function generatePDFReport(filters: ReportFilters, language: string) {
+function resolveTimeRangeLabel(filters: ReportFilterState, language: string) {
   const t = translations[language as keyof typeof translations]
-  const filteredTransactions = filterTransactions(mockTransactions, filters)
-  const summary = calculateSummary(filteredTransactions)
+  return t[filters.timeRange as keyof typeof t] || filters.timeRange
+}
 
-  // Create PDF content as HTML string
+export function generatePDFReport(filters: ReportFilterState, language: string, transactions: Transaction[]) {
+  const t = translations[language as keyof typeof translations]
+  const summary = calculateSummary(transactions)
+
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -255,16 +135,15 @@ export function generatePDFReport(filters: ReportFilters, language: string) {
       </div>
 
       <div class="info-section">
-        <h3>${t.reportPeriod}</h3>
-        <p><strong>${t.filters}:</strong></p>
+        <h3>${t.filters}</h3>
         <ul>
           <li><strong>${t.category}:</strong> ${filters.category === "all" ? t.allCategories : filters.category}</li>
-          <li><strong>${t.type}:</strong> ${filters.type === "all" ? t.allTypes : filters.type === "expense" ? t.expensesOnly : t.incomeOnly
-    }</li>
-          <li><strong>Período:</strong> ${filters.timeRange === "custom" && filters.startDate && filters.endDate
-      ? `${format(filters.startDate, "PP")} - ${format(filters.endDate, "PP")}`
-      : t[filters.timeRange as keyof typeof t] || filters.timeRange
-    }</li>
+          <li><strong>${t.type}:</strong> ${filters.type === "all" ? t.allTypes : filters.type === "expense" ? t.expensesOnly : t.incomeOnly}</li>
+          <li><strong>Período:</strong> ${
+            filters.timeRange === "custom" && filters.startDate && filters.endDate
+              ? `${format(filters.startDate, "PP")} - ${format(filters.endDate, "PP")}`
+              : resolveTimeRangeLabel(filters, language)
+          }</li>
         </ul>
       </div>
 
@@ -300,22 +179,22 @@ export function generatePDFReport(filters: ReportFilters, language: string) {
             </tr>
           </thead>
           <tbody>
-            ${filteredTransactions
-      .map(
-        (transaction) => `
+            ${transactions
+              .map(
+                (transaction) => `
               <tr>
                 <td>${format(new Date(transaction.date), "PP")}</td>
                 <td>${escapeHtml(transaction.description)}</td>
-                <td>${escapeHtml((typeof transaction.category === 'string' ? transaction.category : transaction.category?.name) || "Uncategorized")}</td>
+                <td>${escapeHtml(transaction.category?.name || t.uncategorized)}</td>
                 <td>${transaction.type === "income" ? t.income : t.expense}</td>
                 <td class="amount-${transaction.type}">
                   ${transaction.type === "expense" ? "-" : "+"}$${transaction.amount.toFixed(2)}
                 </td>
                 <td class="notes">${transaction.notes ? escapeHtml(transaction.notes) : "-"}</td>
               </tr>
-            `,
-      )
-      .join("")}
+            `
+              )
+              .join("")}
           </tbody>
         </table>
       </div>
@@ -323,7 +202,6 @@ export function generatePDFReport(filters: ReportFilters, language: string) {
     </html>
   `
 
-  // Create and download PDF
   const blob = new Blob([htmlContent], { type: "text/html" })
   const url = URL.createObjectURL(blob)
   const link = document.createElement("a")
@@ -335,44 +213,37 @@ export function generatePDFReport(filters: ReportFilters, language: string) {
   URL.revokeObjectURL(url)
 }
 
-export function generateExcelReport(filters: ReportFilters, language: string) {
+export function generateExcelReport(filters: ReportFilterState, language: string, transactions: Transaction[]) {
   const t = translations[language as keyof typeof translations]
-  const filteredTransactions = filterTransactions(mockTransactions, filters)
-  const summary = calculateSummary(filteredTransactions)
+  const summary = calculateSummary(transactions)
 
-  // Create CSV content
   const csvContent = [
-    // Header
     `${t.financialReport}`,
     `${t.generatedOn}: ${format(new Date(), "PPP")}`,
     "",
-    // Filters
     `${t.filters}:`,
     `${t.category}: ${filters.category === "all" ? t.allCategories : filters.category}`,
     `${t.type}: ${filters.type === "all" ? t.allTypes : filters.type === "expense" ? t.expensesOnly : t.incomeOnly}`,
-    `Período: ${filters.timeRange === "custom" && filters.startDate && filters.endDate
-      ? `${format(filters.startDate, "PP")} - ${format(filters.endDate, "PP")}`
-      : t[filters.timeRange as keyof typeof t] || filters.timeRange
+    `Período: ${
+      filters.timeRange === "custom" && filters.startDate && filters.endDate
+        ? `${format(filters.startDate, "PP")} - ${format(filters.endDate, "PP")}`
+        : resolveTimeRangeLabel(filters, language)
     }`,
     "",
-    // Summary
     `${t.summary}:`,
     `${t.totalIncome}: $${summary.totalIncome.toFixed(2)}`,
     `${t.totalExpenses}: $${summary.totalExpenses.toFixed(2)}`,
     `${t.netIncome}: $${summary.netIncome.toFixed(2)}`,
     "",
-    // Transaction headers
     `${t.date},${t.description},${t.category},${t.type},${t.amount},${t.notes}`,
-    // Transaction data
-    ...filteredTransactions.map(
+    ...transactions.map(
       (transaction) =>
-        `${format(new Date(transaction.date), "PP")},"${transaction.description}","${(typeof transaction.category === 'string' ? transaction.category : transaction.category?.name) || "Uncategorized"}","${transaction.type === "income" ? t.income : t.expense
-        }","${transaction.type === "expense" ? "-" : "+"}$${transaction.amount.toFixed(2)}","${transaction.notes || ""
-        }"`,
+        `${format(new Date(transaction.date), "PP")},"${transaction.description}","${transaction.category?.name || t.uncategorized}","${
+          transaction.type === "income" ? t.income : t.expense
+        }","${transaction.type === "expense" ? "-" : "+"}$${transaction.amount.toFixed(2)}","${transaction.notes || ""}"`
     ),
   ].join("\n")
 
-  // Create and download CSV
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
   const url = URL.createObjectURL(blob)
   const link = document.createElement("a")

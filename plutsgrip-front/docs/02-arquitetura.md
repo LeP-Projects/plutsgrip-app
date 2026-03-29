@@ -1,402 +1,328 @@
-# Arquitetura do Sistema
+# Arquitetura do Frontend
 
-## 1. Visão Geral da Arquitetura
+## 1. Visao Geral
 
-O PlutusGrip Finance Tracker utiliza uma arquitetura client-server com separação clara entre frontend e backend, seguindo princípios de REST API e componentização modular.
+O frontend do PlutusGrip e uma aplicacao React 19 com TypeScript, Vite e React Router, organizada como cliente web para a API FastAPI do backend.
 
-## 2. Diagrama de Arquitetura
+A aplicacao atual segue um modelo client-server com separacao entre:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         CLIENTE                             │
-│                                                              │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │              React Application (Vite)                  │ │
-│  │                                                         │ │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │ │
-│  │  │   Pages      │  │  Components  │  │   Contexts   │ │ │
-│  │  └──────────────┘  └──────────────┘  └──────────────┘ │ │
-│  │                                                         │ │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │ │
-│  │  │    Hooks     │  │    Utils     │  │    Styles    │ │ │
-│  │  └──────────────┘  └──────────────┘  └──────────────┘ │ │
-│  └────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              │ HTTP/HTTPS
-                              │ (REST API)
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                        SERVIDOR                              │
-│                                                              │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │              Express.js Backend                        │ │
-│  │                                                         │ │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │ │
-│  │  │   Routes     │→ │ Controllers  │→ │    Models    │ │ │
-│  │  └──────────────┘  └──────────────┘  └──────────────┘ │ │
-│  │                                                         │ │
-│  │  ┌──────────────────────────────────────────────────┐  │ │
-│  │  │              Middleware                           │  │ │
-│  │  │  - Authentication                                 │  │ │
-│  │  │  - CORS                                           │  │ │
-│  │  │  - Error Handling                                 │  │ │
-│  │  └──────────────────────────────────────────────────┘  │ │
-│  └────────────────────────────────────────────────────────┘ │
-│                                                              │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │            In-Memory Database (Simulado)               │ │
-│  │  - Users                                               │ │
-│  │  - Transactions                                        │ │
-│  │  - Categories                                          │ │
-│  └────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
-```
+- interface e navegacao
+- estado global e autenticacao
+- consumo de API
+- componentes de dominio
+- componentes base reutilizaveis
 
-## 3. Camadas da Aplicação
+O frontend nao usa um backend em Express nem banco em memoria. O backend real da plataforma e FastAPI com SQLAlchemy e PostgreSQL.
 
-### 3.1 Frontend
+---
 
-#### 3.1.1 Camada de Apresentação (Presentation Layer)
-**Responsabilidade:** Renderização da interface do usuário
+## 2. Stack Atual
 
-**Componentes:**
-- **Pages (Páginas):** Componentes de nível superior que representam rotas
-  - `LoginPage`: Página de autenticação
-  - `RegisterPage`: Página de registro
-  - `DashboardPage`: Painel principal
+| Camada | Tecnologia |
+|--------|------------|
+| UI | React 19 |
+| Linguagem | TypeScript |
+| Build | Vite |
+| Roteamento | React Router DOM |
+| Estilizacao | Tailwind CSS 4 |
+| Componentes base | Radix UI |
+| Formularios | React Hook Form |
+| Graficos | Recharts |
+| Testes unitarios | Vitest |
+| Testes E2E | Playwright |
 
-- **Components (Componentes):** Componentes reutilizáveis
-  - **Dumb Components:** Apenas apresentação (Button, Input, Card)
-  - **Smart Components:** Contêm lógica (Dashboard, TransactionForm)
+---
 
-#### 3.1.2 Camada de Lógica de Negócio (Business Logic Layer)
-**Responsabilidade:** Gerenciamento de estado e lógica da aplicação
+## 3. Estrutura Atual
 
-**Elementos:**
-- **Contexts:** Gerenciamento de estado global
-  - `AuthContext`: Estado de autenticação
-  - `ThemeContext`: Tema da aplicação
-  - `CurrencyContext`: Configurações de moeda
-
-- **Hooks Customizados:** Lógica reutilizável
-  - `useToast`: Notificações
-  - `useIsMobile`: Detecção de dispositivo
-  - `useAuth`: Operações de autenticação
-
-#### 3.1.3 Camada de Roteamento (Routing Layer)
-**Responsabilidade:** Navegação e proteção de rotas
-
-**Componentes:**
-- React Router DOM para gerenciamento de rotas
-- `ProtectedRoute`: HOC para proteção de rotas autenticadas
-- Configuração centralizada no `App.tsx`
-
-#### 3.1.4 Camada de Comunicação (Communication Layer)
-**Responsabilidade:** Comunicação com o backend
-
-**Implementação:**
-- Fetch API nativa para requisições HTTP
-- Interceptores para adicionar tokens JWT
-- Tratamento de erros centralizado
-
-### 3.2 Backend
-
-#### 3.2.1 Camada de Roteamento (Routing Layer)
-**Responsabilidade:** Definição e mapeamento de endpoints
-
-**Estrutura:**
-```javascript
-/api
-  /auth         → auth.routes.js
-  /transactions → transaction.routes.js
-  /categories   → category.routes.js
-  /reports      → report.routes.js
+```text
+plutsgrip-front/
+├── src/
+│   ├── App.tsx
+│   ├── main.tsx
+│   ├── index.css
+│   ├── components/
+│   │   ├── ui/
+│   │   ├── CategoryChart/
+│   │   ├── CategoryManager/
+│   │   ├── ExpenseForm/
+│   │   ├── RecentTransactions/
+│   │   ├── ReportsSection/
+│   │   └── ...
+│   ├── contexts/
+│   │   ├── AuthContext.tsx
+│   │   ├── CurrencyContext.tsx
+│   │   └── ThemeProvider.tsx
+│   ├── hooks/
+│   │   ├── useApi.ts
+│   │   ├── use-mobile.ts
+│   │   └── use-toast.ts
+│   ├── pages/
+│   │   ├── Landing/
+│   │   ├── Login/
+│   │   ├── Register/
+│   │   └── Dashboard/
+│   ├── services/
+│   │   └── api.ts
+│   ├── utils/
+│   │   ├── calculations.ts
+│   │   └── export-utils.ts
+│   └── lib/
+│       └── utils.ts
+├── e2e/
+└── docs/
 ```
 
-#### 3.2.2 Camada de Middleware
-**Responsabilidade:** Processamento intermediário de requisições
+---
 
-**Middlewares:**
-- **authenticateToken:** Validação de JWT
-- **CORS:** Configuração de origens permitidas
-- **Error Handler:** Tratamento centralizado de erros
-- **Body Parser:** Parse de JSON e form data
+## 4. Camadas da Aplicacao
 
-#### 3.2.3 Camada de Controle (Controller Layer)
-**Responsabilidade:** Lógica de negócio e orquestração
+### 4.1 App Shell e Roteamento
 
-**Controllers:**
-- `auth.controller.js`: Autenticação (login, registro, logout)
-- `transaction.controller.js`: CRUD de transações
-- `category.controller.js`: Gerenciamento de categorias
-- `report.controller.js`: Geração de relatórios
+O `App.tsx` configura:
 
-#### 3.2.4 Camada de Modelo (Model Layer)
-**Responsabilidade:** Acesso e manipulação de dados
+- `BrowserRouter`
+- `ThemeProvider`
+- `AuthProvider`
+- `CurrencyProvider`
+- rotas publicas
+- rota protegida para dashboard
 
-**Implementação Atual:**
-- Banco de dados em memória (arrays JavaScript)
-- Funções helper para CRUD operations
+Rotas atuais:
 
-**Recomendação para Produção:**
-- Migrar para ORM (Sequelize, TypeORM, Prisma)
-- Implementar banco de dados real (PostgreSQL, MongoDB)
+- `/`
+- `/login`
+- `/register`
+- `/dashboard`
 
-## 4. Padrões de Design
+Observacao:
+Hoje a maior parte da experiencia autenticada ainda esta concentrada em uma unica pagina de dashboard com abas internas. Isso funciona para o MVP, mas cria gargalo para escalar modulos de produto.
 
-### 4.1 Container/Presentational Pattern
-**Descrição:** Separação entre componentes com lógica (Container) e componentes de apresentação (Presentational).
+---
 
-**Exemplo:**
-```typescript
-// Container Component (Smart)
-export function DashboardContainer() {
-  const [data, setData] = useState([])
-  const [loading, setLoading] = useState(true)
+### 4.2 Contextos Globais
 
-  useEffect(() => {
-    fetchDashboardData()
-  }, [])
+Os contextos concentram estados compartilhados:
 
-  return <DashboardView data={data} loading={loading} />
-}
+- `AuthContext`
+  - sessao do usuario
+  - login
+  - registro
+  - logout
+- `CurrencyContext`
+  - moeda de exibicao
+  - formatacao monetaria
+- `ThemeProvider`
+  - tema claro, escuro ou sistema
 
-// Presentational Component (Dumb)
-export function DashboardView({ data, loading }) {
-  if (loading) return <Spinner />
-  return <div>{/* Renderização */}</div>
-}
-```
+Observacao importante:
+O frontend ainda utiliza `localStorage` para tokens e sessao. O proprio codigo ja documenta que isso e uma estrategia provisoria para demonstracao e deve evoluir em ambiente de producao.
 
-### 4.2 Context + Provider Pattern
-**Descrição:** Gerenciamento de estado global sem prop drilling.
+---
 
-**Implementação:**
-```typescript
-// Provider
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  // ...lógica
-  return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  )
-}
+### 4.3 Camada de Consumo de API
 
-// Consumer
-function Component() {
-  const { user } = useAuth()
-  // ...usar dados
-}
-```
+O arquivo `src/services/api.ts` concentra as chamadas HTTP para:
 
-### 4.3 HOC (Higher-Order Component) Pattern
-**Descrição:** Componente que recebe outro componente e retorna versão aprimorada.
+- autenticacao
+- transacoes
+- categorias
+- relatorios
+- orcamentos
+- metas
+- transacoes recorrentes
 
-**Exemplo:**
-```typescript
-export function ProtectedRoute() {
-  const { isAuthenticated } = useAuth()
+O hook `useApi` encapsula:
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />
-  }
+- loading
+- erro
+- dado carregado
+- execucao manual
+- refetch
 
-  return <Outlet />
-}
-```
+O hook `useMutation` encapsula operacoes de escrita.
 
-### 4.4 Custom Hooks Pattern
-**Descrição:** Extração de lógica reutilizável em hooks customizados.
+Observacoes:
 
-**Exemplo:**
-```typescript
-export function useToast() {
-  const [toasts, setToasts] = useState([])
+- existe centralizacao basica do cliente HTTP
+- ainda nao ha uma camada de cache de dados mais robusta
+- parte dos filtros ainda e processada no cliente em vez de ser delegada ao backend
 
-  const toast = (message) => {
-    // ...lógica
-  }
+---
 
-  return { toasts, toast }
-}
-```
+### 4.4 Camada de Interface
+
+O frontend mistura hoje dois tipos principais de componentes:
+
+- componentes base reutilizaveis
+  - `Button`
+  - `Input`
+  - `Card`
+  - `Dialog`
+  - `Tabs`
+- componentes de dominio
+  - `ExpenseForm`
+  - `RecentTransactions`
+  - `CategoryChart`
+  - `ReportsSection`
+  - `CategoryManager`
+
+Esse modelo funciona, mas ainda esta mais organizado por tipo de artefato do que por dominio de negocio.
+
+---
 
 ## 5. Fluxo de Dados
 
-### 5.1 Fluxo de Autenticação
+### 5.1 Autenticacao
 
-```
-1. Usuário preenche formulário de login
-   ↓
-2. Frontend envia POST /api/auth/login
-   ↓
-3. Backend valida credenciais
-   ↓
-4. Backend gera JWT e retorna
-   ↓
-5. Frontend armazena token no localStorage
-   ↓
-6. Frontend atualiza AuthContext
-   ↓
-7. Usuário é redirecionado para dashboard
-```
+1. Usuario faz login ou registro
+2. Frontend chama `apiService.login` ou `apiService.register`
+3. API retorna tokens e usuario
+4. Sessao e persistida localmente
+5. `AuthContext` atualiza o estado global
+6. Rotas protegidas passam a ser acessiveis
 
-### 5.2 Fluxo de Requisição Protegida
+### 5.2 Consulta de Dados
 
-```
-1. Componente monta e precisa de dados
-   ↓
-2. Hook/Component faz requisição à API
-   ↓
-3. Middleware authenticateToken intercepta
-   ↓
-4. Verifica JWT do header/cookie
-   ↓
-5. Se válido: adiciona user ao req e continua
-   Se inválido: retorna 401/403
-   ↓
-6. Controller processa requisição
-   ↓
-7. Model acessa/modifica dados
-   ↓
-8. Controller retorna resposta
-   ↓
-9. Frontend recebe e atualiza estado
-   ↓
-10. Componente re-renderiza com novos dados
-```
+1. Componente chama `useApi`
+2. `useApi` executa callback do `apiService`
+3. Cliente envia requisicao autenticada ao backend
+4. Estado de loading e atualizado
+5. Resposta e refletida na interface
 
-### 5.3 Fluxo de Criação de Transação
+### 5.3 Escrita de Dados
 
-```
-Frontend:
-1. Usuário preenche TransactionForm
-   ↓
-2. onSubmit chama createTransaction
-   ↓
-3. Função faz POST /api/transactions
-   ↓
+1. Usuario preenche formulario
+2. Componente chama `useMutation`
+3. Mutation envia payload para API
+4. Backend persiste dados
+5. Frontend atualiza listas e indicadores
 
-Backend:
-4. authenticateToken valida usuário
-   ↓
-5. transaction.controller.createTransaction
-   ↓
-6. Valida dados de entrada
-   ↓
-7. database.addTransaction
-   ↓
-8. Retorna transação criada
-   ↓
+Observacao:
+Parte da experiencia atual ainda atualiza apenas estado local em alguns fluxos, e isso precisa ser eliminado gradualmente.
 
-Frontend:
-9. Recebe resposta da API
-   ↓
-10. Atualiza estado local
-   ↓
-11. Exibe toast de sucesso
-   ↓
-12. Re-renderiza lista de transações
-```
+---
 
-## 6. Comunicação entre Camadas
+## 6. Principais Modulos Funcionais Hoje
 
-### 6.1 Frontend → Backend
+### 6.1 Landing e Autenticacao
 
-**Protocolo:** HTTP/HTTPS
-**Formato:** JSON
-**Autenticação:** Bearer Token (JWT)
+- pagina inicial publica
+- login
+- registro
+- controle de rota protegida
 
-**Headers Padrão:**
-```
-Content-Type: application/json
-Authorization: Bearer <token>
-```
+### 6.2 Dashboard
 
-### 6.2 Backend → Database
+Concentra:
 
-**Implementação Atual:** Funções JavaScript diretas
-**Recomendação:** ORM com pool de conexões
+- indicadores principais
+- graficos
+- formulario de transacao
+- listagem recente
+- secao de relatorios
+- configuracoes visuais
 
-## 7. Segurança da Arquitetura
+### 6.3 Relatorios
 
-### 7.1 Autenticação e Autorização
-- JWT stateless para escalabilidade
-- Tokens com expiração configurável
-- Hashing de senhas com bcrypt
-- Validação em cada endpoint protegido
+Atualmente ha suporte a:
 
-### 7.2 Proteção contra Ataques
-- CORS configurado para origens específicas
-- Validação de entrada de dados
-- Sanitização de dados do usuário
-- Rate limiting (recomendado para produção)
+- resumo de dashboard
+- tendencia mensal
+- detalhamento por categoria
+- padroes de gastos
 
-### 7.3 Segurança de Dados
-- Senhas nunca retornadas nas respostas
-- Tokens armazenados de forma segura
-- Logs sem informações sensíveis
+Mas ainda existem filtros e categorias tratados localmente no frontend, o que reduz confiabilidade e escalabilidade.
 
-## 8. Escalabilidade
+### 6.4 Gestao Financeira
 
-### 8.1 Frontend
-- Code splitting com React.lazy
-- Cache de assets estáticos
-- CDN para distribuição de conteúdo
-- Service Workers para cache offline
+A API ja suporta:
 
-### 8.2 Backend
-- Stateless design permite múltiplas instâncias
-- Load balancer para distribuir requisições
-- Cache de consultas frequentes (Redis)
-- Queue para processamento assíncrono
+- transacoes
+- categorias
+- orcamentos
+- metas
+- recorrencias
 
-## 9. Monitoramento e Logs
+Nem todos esses dominios ainda aparecem no frontend como modulos independentes de produto.
 
-### 9.1 Frontend
-- Error boundaries para captura de erros
-- Analytics de uso (Google Analytics, Mixpanel)
-- Performance monitoring (Lighthouse)
+---
 
-### 9.2 Backend
-- Logs estruturados (Winston, Pino)
-- Monitoramento de erros (Sentry)
-- Métricas de performance (Prometheus)
-- Health checks para disponibilidade
+## 7. Problemas Arquiteturais Atuais
 
-## 10. Deploy
+### 7.1 Concentracao excessiva no Dashboard
 
-### 10.1 Frontend
-**Opções recomendadas:**
-- Vercel
-- Netlify
-- AWS S3 + CloudFront
-- GitHub Pages
+A area autenticada esta muito concentrada em uma unica pagina com varias abas internas. Isso:
 
-### 10.2 Backend
-**Opções recomendadas:**
-- Heroku
-- Railway
-- AWS EC2 / ECS
-- DigitalOcean
-- Render
+- dificulta escalabilidade da UX
+- aumenta acoplamento
+- torna manutencao mais custosa
 
-### 10.3 Variáveis de Ambiente
+### 7.2 Frontend ainda filtra parte dos dados localmente
 
-**Frontend:**
-```env
-VITE_API_URL=https://api.plutusgrip.com
+Alguns componentes consultam dados brutos e fazem filtragem no cliente, quando o ideal seria delegar mais ao backend para:
+
+- coerencia
+- performance
+- reuso
+- confiabilidade dos relatarios
+
+### 7.3 Estrutura orientada a tipo de arquivo
+
+A organizacao atual por `components`, `pages`, `services` e `hooks` funciona, mas tende a perder clareza conforme o produto cresce.
+
+### 7.4 Contratos ainda pouco centralizados
+
+Embora `api.ts` concentre chamadas, ainda ha risco de divergencia entre modelos da API e expectativas do frontend.
+
+---
+
+## 8. Direcao Arquitetural Recomendada
+
+### Curto prazo
+
+- corrigir contratos entre frontend e backend
+- remover hardcodes de filtros e categorias
+- garantir persistencia real em fluxos de edicao e exclusao
+- revisar documentacao e cobertura de testes
+
+### Medio prazo
+
+Migrar a estrutura do frontend para modulos de dominio, por exemplo:
+
+```text
+src/
+├── app/
+├── shared/
+├── features/
+│   ├── auth/
+│   ├── transactions/
+│   ├── categories/
+│   ├── budgets/
+│   ├── goals/
+│   ├── recurring/
+│   ├── reports/
+│   └── insights/
 ```
 
-**Backend:**
-```env
-PORT=8000
-NODE_ENV=production
-JWT_SECRET=<secret_key>
-JWT_EXPIRES_IN=86400
-CORS_ORIGIN=https://plutusgrip.com
-DATABASE_URL=<database_connection_string>
-```
+### Longo prazo
+
+- modularizar a experiencia autenticada por rotas reais
+- introduzir camada de cache e sincronizacao mais robusta
+- gerar tipos a partir do contrato OpenAPI
+- evoluir autenticacao para estrategia mais segura
+
+---
+
+## 9. Resumo
+
+O frontend do PlutusGrip ja possui uma base moderna e funcional, mas ainda esta em transicao entre MVP operacional e produto escalavel.
+
+Os proximos passos arquiteturais devem priorizar:
+
+- coerencia tecnica
+- modularizacao por dominio
+- melhor separacao de responsabilidades
+- integracao mais forte com os contratos reais do backend
+- reducao da dependencia de logica local para relatorios e regras financeiras
+

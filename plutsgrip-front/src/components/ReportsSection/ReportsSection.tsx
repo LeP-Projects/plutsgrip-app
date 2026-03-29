@@ -1,20 +1,21 @@
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { format } from "date-fns"
+import { Download, FileSpreadsheet, FileText, Filter, RotateCcw } from "lucide-react"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card"
 import { Button } from "@/components/Button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select"
-import { Filter, RotateCcw, Download, FileText, FileSpreadsheet } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover"
 import { Calendar } from "@/components/Calendar"
-// import { ExpenseChart } from "@/components/ExpenseChart" // Removed per user request
-// import { IncomeChart } from "@/components/IncomeChart" // Removed per user request
 import { CategoryChart } from "@/components/CategoryChart"
 import { ColumnChart } from "@/components/ColumnChart"
-import { generatePDFReport, generateExcelReport } from "@/utils/export-utils"
-import { useState } from "react"
-import { format } from "date-fns"
+import { useApi } from "@/hooks/useApi"
+import { apiService } from "@/services/api"
+import { generateExcelReport, generatePDFReport } from "@/utils/export-utils"
+import { resolveDateRange, type ReportFilterState } from "@/utils/report-filters"
 
 const translations = {
   en: {
-    reports: "Reports",
     financialReports: "Financial Reports & Analytics",
     viewAnalytics: "View detailed analytics and generate reports",
     reportFilters: "Report Filters",
@@ -37,15 +38,13 @@ const translations = {
     generatePDF: "Generate PDF Report",
     generateExcel: "Generate Excel Report",
     selectStartDate: "Select start date",
-    selectEndDate: "Select end date",
     startDate: "Start Date",
     endDate: "End Date",
     applyDateRange: "Apply Date Range",
     clearDateRange: "Clear Date Range",
-    exportSuccess: "Report exported successfully!",
+    generating: "Generating...",
   },
   pt: {
-    reports: "Relatórios",
     financialReports: "Relatórios Financeiros e Análises",
     viewAnalytics: "Visualize análises detalhadas e gere relatórios",
     reportFilters: "Filtros de Relatório",
@@ -68,12 +67,11 @@ const translations = {
     generatePDF: "Gerar Relatório PDF",
     generateExcel: "Gerar Relatório Excel",
     selectStartDate: "Selecionar data inicial",
-    selectEndDate: "Selecionar data final",
     startDate: "Data Inicial",
     endDate: "Data Final",
     applyDateRange: "Aplicar Período",
     clearDateRange: "Limpar Período",
-    exportSuccess: "Relatório exportado com sucesso!",
+    generating: "Gerando...",
   },
 }
 
@@ -81,16 +79,8 @@ interface ReportsSectionProps {
   language: string
 }
 
-interface ReportFilters {
-  timeRange: string
-  category: string
-  type: string
-  startDate?: Date
-  endDate?: Date
-}
-
 export function ReportsSection({ language }: ReportsSectionProps) {
-  const [filters, setFilters] = useState<ReportFilters>({
+  const [filters, setFilters] = useState<ReportFilterState>({
     timeRange: "thisMonth",
     category: "all",
     type: "all",
@@ -101,11 +91,41 @@ export function ReportsSection({ language }: ReportsSectionProps) {
   const [isExporting, setIsExporting] = useState(false)
 
   const t = translations[language as keyof typeof translations]
+  const { startDate: resolvedStartDate, endDate: resolvedEndDate } = resolveDateRange(filters)
 
-  const handleFilterChange = (filterType: keyof ReportFilters, value: string) => {
+  const { data: categoriesData } = useApi(() => apiService.listCategories(), true)
+
+  const fetchTransactions = useCallback(
+    () =>
+      apiService.listTransactions(
+        1,
+        500,
+        filters.type !== "all" ? (filters.type as "income" | "expense") : undefined,
+        filters.category !== "all"
+          ? categoriesData?.categories.find((category) => category.name === filters.category)?.id
+          : undefined,
+        resolvedStartDate,
+        resolvedEndDate
+      ),
+    [categoriesData?.categories, filters.category, filters.type, resolvedEndDate, resolvedStartDate]
+  )
+
+  const { data: transactionsData, refetch: refetchTransactions } = useApi(fetchTransactions, true)
+
+  useEffect(() => {
+    refetchTransactions().catch(() => {
+      // Hook already stores the error state
+    })
+  }, [fetchTransactions, refetchTransactions])
+
+  const categoryNames = useMemo(
+    () => (categoriesData?.categories || []).map((category) => category.name),
+    [categoriesData?.categories]
+  )
+
+  const handleFilterChange = (filterType: keyof ReportFilterState, value: string) => {
     const newFilters = { ...filters, [filterType]: value }
 
-    // Clear custom date range if switching away from custom
     if (filterType === "timeRange" && value !== "custom") {
       setStartDate(undefined)
       setEndDate(undefined)
@@ -139,10 +159,7 @@ export function ReportsSection({ language }: ReportsSectionProps) {
   const handleExportPDF = async () => {
     setIsExporting(true)
     try {
-      generatePDFReport(filters, language)
-      console.log("PDF export completed")
-    } catch (error) {
-      console.error("PDF export failed:", error)
+      generatePDFReport(filters, language, transactionsData?.transactions || [])
     } finally {
       setIsExporting(false)
     }
@@ -151,10 +168,7 @@ export function ReportsSection({ language }: ReportsSectionProps) {
   const handleExportExcel = async () => {
     setIsExporting(true)
     try {
-      generateExcelReport(filters, language)
-      console.log("Excel export completed")
-    } catch (error) {
-      console.error("Excel export failed:", error)
+      generateExcelReport(filters, language, transactionsData?.transactions || [])
     } finally {
       setIsExporting(false)
     }
@@ -162,27 +176,23 @@ export function ReportsSection({ language }: ReportsSectionProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-foreground">{t.financialReports}</h2>
-          <p className="text-sm sm:text-base text-muted-foreground">{t.viewAnalytics}</p>
+          <h2 className="text-2xl font-serif font-bold text-foreground sm:text-3xl">{t.financialReports}</h2>
+          <p className="text-sm text-muted-foreground sm:text-base">{t.viewAnalytics}</p>
         </div>
       </div>
 
-      {/* Report Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base sm:text-lg font-serif flex items-center gap-2">
-            <Filter className="h-4 sm:h-5 w-4 sm:w-5" />
+          <CardTitle className="flex items-center gap-2 text-base font-serif sm:text-lg">
+            <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
             {t.reportFilters}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3 sm:space-y-4">
-            {/* First row - Time Range and Custom Date */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-              {/* Time Range Filter */}
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
               <Select value={filters.timeRange} onValueChange={(value) => handleFilterChange("timeRange", value)}>
                 <SelectTrigger>
                   <SelectValue placeholder={t.timeRange} />
@@ -198,18 +208,17 @@ export function ReportsSection({ language }: ReportsSectionProps) {
                 </SelectContent>
               </Select>
 
-              {/* Custom Date Range */}
               {filters.timeRange === "custom" && (
                 <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="flex justify-self-end justify-center max-w-3xs bg-transparent">
+                    <Button variant="outline" className="max-w-3xs justify-center justify-self-end bg-transparent">
                       {startDate && endDate
                         ? `${format(startDate, "MMM dd")} - ${format(endDate, "MMM dd")}`
                         : t.selectStartDate}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                    <div className="p-4 space-y-4">
+                    <div className="space-y-4 p-4">
                       <div className="space-y-2">
                         <label className="text-sm font-medium">{t.startDate}</label>
                         <Calendar
@@ -250,26 +259,21 @@ export function ReportsSection({ language }: ReportsSectionProps) {
               )}
             </div>
 
-            {/* Second row - Category, Type, and Reset */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {/* Category Filter */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
               <Select value={filters.category} onValueChange={(value) => handleFilterChange("category", value)}>
                 <SelectTrigger className="h-10 sm:h-9">
                   <SelectValue placeholder={t.category} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t.allCategories}</SelectItem>
-                  <SelectItem value="Food & Dining">Food & Dining</SelectItem>
-                  <SelectItem value="Transportation">Transportation</SelectItem>
-                  <SelectItem value="Shopping">Shopping</SelectItem>
-                  <SelectItem value="Bills">Bills</SelectItem>
-                  <SelectItem value="Income">Income</SelectItem>
-                  <SelectItem value="Entertainment">Entertainment</SelectItem>
-                  <SelectItem value="Healthcare">Healthcare</SelectItem>
+                  {categoryNames.map((categoryName) => (
+                    <SelectItem key={categoryName} value={categoryName}>
+                      {categoryName}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
-              {/* Type Filter */}
               <Select value={filters.type} onValueChange={(value) => handleFilterChange("type", value)}>
                 <SelectTrigger className="h-10 sm:h-9">
                   <SelectValue placeholder={t.type} />
@@ -281,9 +285,12 @@ export function ReportsSection({ language }: ReportsSectionProps) {
                 </SelectContent>
               </Select>
 
-              {/* Reset Button */}
-              <Button variant="outline" onClick={resetFilters} className="bg-transparent h-10 sm:h-9 sm:col-span-2 lg:col-span-1">
-                <RotateCcw className="h-4 w-4 mr-2" />
+              <Button
+                variant="outline"
+                onClick={resetFilters}
+                className="h-10 bg-transparent sm:col-span-2 sm:h-9 lg:col-span-1"
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />
                 {t.reset}
               </Button>
             </div>
@@ -291,43 +298,34 @@ export function ReportsSection({ language }: ReportsSectionProps) {
         </CardContent>
       </Card>
 
-      {/* Export Options */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base sm:text-lg font-serif flex items-center gap-2">
-            <Download className="h-4 sm:h-5 w-4 sm:w-5" />
+          <CardTitle className="flex items-center gap-2 text-base font-serif sm:text-lg">
+            <Download className="h-4 w-4 sm:h-5 sm:w-5" />
             {t.exportOptions}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <Button onClick={handleExportPDF} disabled={isExporting} className="bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto">
-              <FileText className="h-4 w-4 mr-2" />
-              {isExporting ? "Generating..." : t.generatePDF}
+          <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+            <Button onClick={handleExportPDF} disabled={isExporting} className="w-full bg-red-600 text-white hover:bg-red-700 sm:w-auto">
+              <FileText className="mr-2 h-4 w-4" />
+              {isExporting ? t.generating : t.generatePDF}
             </Button>
             <Button
               onClick={handleExportExcel}
               disabled={isExporting}
-              className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
+              className="w-full bg-green-600 text-white hover:bg-green-700 sm:w-auto"
             >
-              <FileSpreadsheet className="h-4 w-4 mr-2" />
-              {isExporting ? "Generating..." : t.generateExcel}
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              {isExporting ? t.generating : t.generateExcel}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Charts Section */}
-      <div className="grid gap-4 sm:gap-6">
-        {/* Monthly Trends removed per user request */}
-        {/* <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
-          <ExpenseChart language={language} filters={filters} />
-          <IncomeChart language={language} filters={filters} />
-        </div> */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
-          <CategoryChart language={language} filters={filters} />
-          <ColumnChart language={language} filters={filters} />
-        </div>
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+        <CategoryChart language={language} filters={filters} />
+        <ColumnChart language={language} filters={filters} />
       </div>
     </div>
   )

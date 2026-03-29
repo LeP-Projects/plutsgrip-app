@@ -175,3 +175,51 @@ async def test_pagination(authenticated_client: AsyncClient):
     assert len(data["transactions"]) == 2
     assert data["page"] == 1
     assert data["page_size"] == 2
+
+
+@pytest.mark.asyncio
+async def test_pagination_respects_filtered_total_and_date_range(authenticated_client: AsyncClient):
+    """Test that pagination keeps the filtered total when date filters are applied"""
+    transactions = [
+        {
+            "description": "Expense in range 1",
+            "amount": "120.00",
+            "date": "2026-03-10",
+            "type": "expense",
+        },
+        {
+            "description": "Expense in range 2",
+            "amount": "220.00",
+            "date": "2026-03-11",
+            "type": "expense",
+        },
+        {
+            "description": "Expense in range 3",
+            "amount": "320.00",
+            "date": "2026-03-12",
+            "type": "expense",
+        },
+        {
+            "description": "Expense out of range",
+            "amount": "420.00",
+            "date": "2026-02-28",
+            "type": "expense",
+        },
+    ]
+
+    for transaction in transactions:
+        await authenticated_client.post("/api/transactions", json=transaction)
+
+    response = await authenticated_client.get(
+        "/api/transactions?page=1&page_size=2&start_date=2026-03-10&end_date=2026-03-12"
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["transactions"]) == 2
+    assert data["total"] == 3
+    assert data["page"] == 1
+    assert data["page_size"] == 2
+
+    returned_dates = {transaction["date"] for transaction in data["transactions"]}
+    assert returned_dates.issubset({"2026-03-10", "2026-03-11", "2026-03-12"})

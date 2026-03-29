@@ -88,6 +88,7 @@ export interface Budget {
   period: "monthly" | "quarterly" | "yearly"
   start_date: string
   end_date?: string
+  notifications_enabled?: boolean
   created_at: string
   updated_at: string
 }
@@ -97,6 +98,10 @@ export interface BudgetCreateRequest {
   amount: number
   period: "monthly" | "quarterly" | "yearly"
   start_date: string
+}
+
+export interface BudgetUpdateRequest extends Partial<BudgetCreateRequest> {
+  notifications_enabled?: boolean
 }
 
 export interface BudgetStatus {
@@ -118,8 +123,16 @@ export interface Goal {
   category?: string
   priority: "low" | "medium" | "high"
   is_completed: boolean
+  progress_percentage?: number
   created_at: string
   updated_at: string
+}
+
+export interface GoalProgressSummary {
+  total_goals: number
+  completed_goals: number
+  pending_goals: number
+  completion_percentage: number
 }
 
 export interface GoalCreateRequest {
@@ -131,6 +144,11 @@ export interface GoalCreateRequest {
   priority: "low" | "medium" | "high"
 }
 
+export interface GoalUpdateRequest extends Partial<GoalCreateRequest> {
+  current_amount?: number
+  is_completed?: boolean
+}
+
 export interface RecurringTransaction {
   id: string
   user_id: string
@@ -138,10 +156,11 @@ export interface RecurringTransaction {
   amount: number
   currency?: string
   type: "income" | "expense"
-  category_id?: string
+  category_id?: number
   frequency: "daily" | "weekly" | "biweekly" | "monthly" | "quarterly" | "yearly"
   start_date: string
   end_date?: string
+  next_execution_date?: string
   is_active: boolean
   notes?: string
   created_at: string
@@ -153,11 +172,15 @@ export interface RecurringTransactionCreateRequest {
   amount: number
   currency?: string
   type: "income" | "expense"
-  category_id?: string
+  category_id?: number
   frequency: "daily" | "weekly" | "biweekly" | "monthly" | "quarterly" | "yearly"
   start_date: string
   end_date?: string
   notes?: string
+}
+
+export interface RecurringTransactionUpdateRequest extends Partial<RecurringTransactionCreateRequest> {
+  is_active?: boolean
 }
 
 export interface DashboardData {
@@ -181,14 +204,22 @@ export interface FinancialSummary {
     category_name: string
     total: number
     count: number
+    percentage: number
   }>
   expense_by_category: Array<{
     category_id: string
     category_name: string
     total: number
     count: number
+    percentage: number
   }>
-  daily_totals: Record<string, number>
+  daily_totals: Record<
+    string,
+    {
+      income: number
+      expense: number
+    }
+  >
 }
 
 export interface MonthlyTrends {
@@ -439,13 +470,17 @@ class ApiService {
     page: number = 1,
     pageSize: number = 20,
     type?: "income" | "expense",
-    categoryId?: string
+    categoryId?: string,
+    startDate?: string,
+    endDate?: string
   ): Promise<TransactionListResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
       page_size: pageSize.toString(),
       ...(type && { type }),
       ...(categoryId && { category: categoryId }),
+      ...(startDate && { start_date: startDate }),
+      ...(endDate && { end_date: endDate }),
     })
 
     return this.request<TransactionListResponse>(
@@ -590,6 +625,7 @@ class ApiService {
       category_name: string
       total: number
       count: number
+      percentage: number
     }>
   > {
     const params = new URLSearchParams({
@@ -654,7 +690,7 @@ class ApiService {
    */
   async updateBudget(
     id: string,
-    data: Partial<BudgetCreateRequest>
+    data: BudgetUpdateRequest
   ): Promise<Budget> {
     return this.request<Budget>(`/budgets/${id}`, {
       method: "PUT",
@@ -717,7 +753,7 @@ class ApiService {
   /**
    * Atualiza uma meta
    */
-  async updateGoal(id: string, data: Partial<GoalCreateRequest>): Promise<Goal> {
+  async updateGoal(id: string, data: GoalUpdateRequest): Promise<Goal> {
     return this.request<Goal>(`/goals/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
@@ -750,6 +786,13 @@ class ApiService {
     return this.request<Goal>(`/goals/${id}/complete`, {
       method: "POST",
     })
+  }
+
+  /**
+   * Obtém resumo agregado das metas
+   */
+  async getGoalsSummary(): Promise<GoalProgressSummary> {
+    return this.request<GoalProgressSummary>("/goals/summary/progress")
   }
 
   // ===================== TRANSAÇÕES RECORRENTES =====================
@@ -797,7 +840,7 @@ class ApiService {
    */
   async updateRecurringTransaction(
     id: string,
-    data: Partial<RecurringTransactionCreateRequest>
+    data: RecurringTransactionUpdateRequest
   ): Promise<RecurringTransaction> {
     return this.request<RecurringTransaction>(
       `/recurring-transactions/${id}`,

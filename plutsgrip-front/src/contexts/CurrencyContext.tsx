@@ -10,6 +10,8 @@ interface ExchangeRates {
 interface CurrencyContextType {
   currency: Currency
   setCurrency: (currency: Currency) => void
+  privacyMode: boolean
+  setPrivacyMode: (enabled: boolean) => void
   exchangeRates: ExchangeRates
   convertAmount: (amount: number, fromCurrency: Currency, toCurrency: Currency) => number
   formatCurrency: (amount: number, currency?: Currency) => string
@@ -40,6 +42,7 @@ interface CurrencyProviderProps {
  */
 export function CurrencyProvider({ children }: CurrencyProviderProps) {
   const [currency, setCurrency] = useState<Currency>("BRL")
+  const [privacyMode, setPrivacyModeState] = useState(false)
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates>({
     USD_BRL: 5.2,
     BRL_USD: 0.19,
@@ -94,8 +97,12 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
   useEffect(() => {
     try {
       const savedCurrency = localStorage.getItem("preferred-currency") as Currency
+      const savedPrivacyMode = localStorage.getItem("privacy-mode-enabled")
       if (savedCurrency && (savedCurrency === "BRL" || savedCurrency === "USD")) {
         setCurrency(savedCurrency)
+      }
+      if (savedPrivacyMode) {
+        setPrivacyModeState(savedPrivacyMode === "true")
       }
     } catch (error) {
       console.error("Error loading currency preference:", error)
@@ -118,6 +125,14 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
     }
   }, [currency])
 
+  useEffect(() => {
+    try {
+      localStorage.setItem("privacy-mode-enabled", String(privacyMode))
+    } catch (error) {
+      console.error("Error saving privacy mode preference:", error)
+    }
+  }, [privacyMode])
+
   /**
    * Converte valor entre moedas
    */
@@ -137,6 +152,10 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
    * Formata valor como moeda
    */
   const formatCurrency = (amount: number, targetCurrency?: Currency): string => {
+    if (privacyMode) {
+      return "••••"
+    }
+
     const curr = targetCurrency || currency
 
     if (curr === "BRL") {
@@ -157,6 +176,8 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
       value={{
         currency,
         setCurrency,
+        privacyMode,
+        setPrivacyMode: setPrivacyModeState,
         exchangeRates,
         convertAmount,
         formatCurrency,
