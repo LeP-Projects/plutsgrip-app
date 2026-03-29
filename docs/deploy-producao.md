@@ -78,8 +78,9 @@ sudo cp /etc/letsencrypt/live/seudominio.com/privkey.pem nginx/certs/
 
 #### Database (CRÍTICO)
 ```bash
-DATABASE_URL=postgresql://PROD_USER:PROD_PASSWORD@db.seudominio.com:5432/plutusgrip_production
+DATABASE_URL=postgresql://<user>:<password>@<host>/<database>?sslmode=require&channel_binding=require
 ```
+- [ ] Para Neon, usar a connection string fornecida pelo painel
 - [ ] Substituir `PROD_USER` por usuário real
 - [ ] Substituir `PROD_PASSWORD` por senha real
 - [ ] Substituir `db.seudominio.com` por host real
@@ -104,10 +105,10 @@ ALLOWED_ORIGINS=https://seudominio.com,https://www.seudominio.com,https://api.se
 
 #### Frontend
 ```bash
-VITE_API_URL=https://seudominio.com/api
+VITE_API_URL=/api
 ```
-- [ ] Usar HTTPS
-- [ ] Incluir `/api` no final
+- [ ] Usar `/api` quando frontend e API estiverem no mesmo domínio via Nginx
+- [ ] Usar URL absoluta apenas se a API estiver em outro host
 
 #### Docker
 ```bash

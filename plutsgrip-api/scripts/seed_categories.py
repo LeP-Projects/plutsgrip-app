@@ -8,6 +8,7 @@ Usage:
 import asyncio
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from app.core.config import settings
+from app.core.database_url import normalize_async_database_url
 from app.models.category import Category, TransactionType
 from app.core.database import Base
 
@@ -39,7 +40,7 @@ async def seed_categories():
     """Seed the database with default categories"""
     # Create engine
     engine = create_async_engine(
-        settings.DATABASE_URL,
+        normalize_async_database_url(settings.DATABASE_URL),
         echo=False
     )
 

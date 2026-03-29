@@ -1,5 +1,3 @@
-version: '3.9'
-
 # ============================================================
 # PLUTUSGRIP - UNIFIED DOCKER COMPOSE CONFIGURATION
 # ============================================================
@@ -70,16 +68,12 @@ services:
         - BUILDKIT_INLINE_CACHE=1
     container_name: plutusgrip_api
     environment:
-      # Database - conditional based on profile
-      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-plutusgrip_user}:${POSTGRES_PASSWORD:-plutusgrip_password}@postgres:5432/${POSTGRES_DB:-plutusgrip_db}}
-      POSTGRES_USER: ${POSTGRES_USER:-plutusgrip_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-plutusgrip_password}
-      POSTGRES_DB: ${POSTGRES_DB:-plutusgrip_db}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
 
       # Application
       APP_ENV: ${APP_ENV:-development}
       DEBUG: ${DEBUG:-True}
-      SECRET_KEY: ${SECRET_KEY:-dev-super-secret-key-change-this-in-production}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
       ALGORITHM: ${ALGORITHM:-HS256}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
 
@@ -128,27 +122,27 @@ services:
   # ==================== FRONTEND ====================
   frontend:
     build:
-      context: ./plutsgrip-frond-refac
+      context: .
       dockerfile: ${FRONTEND_DOCKERFILE:-Dockerfile}
       args:
-        - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
+        - VITE_API_URL=${VITE_API_URL:-/api}
         - BUILDKIT_INLINE_CACHE=1
     container_name: plutusgrip_frontend
     environment:
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+      VITE_API_URL: ${VITE_API_URL:-/api}
     ports:
       - "${FRONTEND_PORT:-5173}:${FRONTEND_INTERNAL_PORT:-5173}"
     volumes:
       # Dev volumes for hot reload - only effective with Dockerfile.dev
-      - ./plutsgrip-frond-refac/src:/app/src:${VOLUME_MODE:-rw}
-      - ./plutsgrip-frond-refac/public:/app/public:${VOLUME_MODE:-rw}
-      - ./plutsgrip-frond-refac/index.html:/app/index.html:${VOLUME_MODE:-rw}
+      - ./plutsgrip-front/src:/app/plutsgrip-front/src:${VOLUME_MODE:-rw}
+      - ./plutsgrip-front/public:/app/plutsgrip-front/public:${VOLUME_MODE:-rw}
+      - ./plutsgrip-front/index.html:/app/plutsgrip-front/index.html:${VOLUME_MODE:-rw}
     depends_on:
       - api
     networks:
       - plutusgrip_network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:${FRONTEND_INTERNAL_PORT:-5173}"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:${FRONTEND_INTERNAL_PORT:-5173}"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -182,7 +176,7 @@ services:
     networks:
       - plutusgrip_network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/health"]
       interval: 30s
       timeout: 10s
       retries: 3

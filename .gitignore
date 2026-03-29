@@ -28,3 +28,7 @@ dist-ssr
 .env.*.local
 .env.prod
 .env.dev
+
+# local deployment artifacts
+*.backup
+nginx/certs/*.pem
