@@ -7,11 +7,11 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 import asyncio
-import re
 
 # Import your Base and models
 from app.core.database import Base
 from app.core.config import settings
+from app.core.database_url import normalize_async_database_url
 
 # Import all models so Alembic can detect them
 from app.models.user import User
@@ -30,11 +30,8 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Override sqlalchemy.url with the one from settings
-# Override sqlalchemy.url with the one from settings
-database_url = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
-database_url = re.sub(r"&?channel_binding=[^&]+", "", database_url)
-database_url = database_url.replace("sslmode=", "ssl=")
+# Override sqlalchemy.url with the one from settings.
+database_url = normalize_async_database_url(settings.DATABASE_URL)
 config.set_main_option("sqlalchemy.url", database_url)
 
 # Add your model's MetaData object here for 'autogenerate' support

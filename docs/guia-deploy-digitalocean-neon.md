@@ -30,8 +30,8 @@ DEBUG=False
 
 # Database
 # Use a string de conexão do Neon.
-# Importante: A aplicação ajusta automaticamente para asyncpg, mas mantenha o formato padrão.
-DATABASE_URL=postgresql://user:password@endpoint.neon.tech/plutusgrip_prod?sslmode=require
+# Importante: A aplicação ajusta automaticamente para asyncpg e remove channel_binding quando necessário.
+DATABASE_URL=postgresql://user:password@endpoint.neon.tech/plutusgrip_prod?sslmode=require&channel_binding=require
 
 # Security
 SECRET_KEY=sua-chave-secreta-gerada-aleatoriamente-32-chars
@@ -46,8 +46,9 @@ DB_MAX_OVERFLOW=30
 
 ### Frontend
 ```env
-# URL da API em produção (Endereço público)
-VITE_API_URL=https://seu-dominio.com/api
+# URL da API em produção
+# Use /api quando frontend e API estiverem atrás do mesmo Nginx.
+VITE_API_URL=/api
 ```
 
 ---
