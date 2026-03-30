@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { MoreHorizontal, Edit, Trash2, Search } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card"
@@ -110,6 +110,14 @@ interface EditFormState {
 
 function normalizeTransactionType(type: string | undefined): "income" | "expense" {
   return type?.toLowerCase() === "income" ? "income" : "expense"
+}
+
+function formatTransactionDate(value: string): string {
+  try {
+    return format(parseISO(value), "dd/MM/yyyy")
+  } catch {
+    return value
+  }
 }
 
 export function RecentTransactions({
@@ -334,7 +342,7 @@ export function RecentTransactions({
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-foreground">{transaction.description}</p>
                   <p className="text-sm text-muted-foreground">
-                    {new Date(transaction.date).toLocaleDateString()} •{" "}
+                    {formatTransactionDate(transaction.date)} •{" "}
                     {transaction.category?.name || t.uncategorized}
                   </p>
                   {transaction.notes && (

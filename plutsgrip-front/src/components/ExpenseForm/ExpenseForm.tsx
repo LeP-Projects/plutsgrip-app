@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PlusCircle, AlertCircle } from "lucide-react"
 // import { Calendar } from "@/components/Calendar" // Unused now
 // import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover" // Unused now
-import { format } from "date-fns"
+import { parseISO } from "date-fns"
 import { useCurrency } from "@/contexts/CurrencyContext"
 import { cn } from "@/lib/utils"
 import { useApi } from "@/hooks/useApi"
@@ -69,7 +69,7 @@ interface ExpenseFormProps {
 }
 
 export function ExpenseForm({ language, defaultType, onTransactionCreated }: ExpenseFormProps) {
-  const [date, setDate] = useState<Date>()
+  const [date, setDate] = useState("")
   const { currency } = useCurrency()
 
   // Busca categorias da API
@@ -130,7 +130,7 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
         amount: parseFloat(formData.amount),
         category_id: parseInt(formData.category, 10),
         type: (formData.type || defaultType) as "income" | "expense",
-        date: format(date!, "yyyy-MM-dd"),
+        date,
         notes: formData.notes || undefined,
       }
 
@@ -144,7 +144,7 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
         type: defaultType || "",
         notes: "",
       })
-      setDate(undefined)
+      setDate("")
       setErrors({
         description: false,
         amount: false,
@@ -231,17 +231,14 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
                 <Input
                   type="date"
                   required
-                  value={date ? format(date, "yyyy-MM-dd") : ""}
+                  value={date}
                   onChange={(e) => {
                     const value = e.target.value;
                     if (!value) {
-                      setDate(undefined);
+                      setDate("");
                       return;
                     }
-                    // Create date handling timezone properly
-                    const [year, month, day] = value.split('-').map(Number);
-                    const newDate = new Date(year, month - 1, day);
-                    setDate(newDate);
+                    setDate(parseISO(value).toISOString().slice(0, 10));
 
                     if (errors.date) {
                       setErrors((prev) => ({ ...prev, date: false }));
