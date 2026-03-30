@@ -54,6 +54,7 @@ const translations = {
     transactions: "Transactions:",
     edit: "Edit",
     delete: "Delete",
+    defaultCategory: "Default category",
     deleteCategory: "Delete Category",
     deleteCategoryDesc:
       "Are you sure you want to delete this category? This action cannot be undone and will affect all associated transactions.",
@@ -78,6 +79,7 @@ const translations = {
     transactions: "Transações:",
     edit: "Editar",
     delete: "Excluir",
+    defaultCategory: "Categoria padrao",
     deleteCategory: "Excluir Categoria",
     deleteCategoryDesc:
       "Tem certeza de que deseja excluir esta categoria? Esta ação não pode ser desfeita e afetará todas as transações associadas.",
@@ -340,40 +342,47 @@ export function CategoryManager({ language }: CategoryManagerProps) {
                       <p className="text-xs text-muted-foreground capitalize mt-1">
                         {category.type === "income" ? "Renda" : "Despesa"}
                       </p>
+                      {category.is_default && (
+                        <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                          {t.defaultCategory}
+                        </p>
+                      )}
                     </div>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => handleEditCategory(category)} title={t.edit} disabled={isLoading}>
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
-                            title={t.delete}
-                            disabled={isLoading}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>{t.deleteCategory}</AlertDialogTitle>
-                            <AlertDialogDescription>{t.deleteCategoryDesc}</AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteCategory(category.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    {!category.is_default && (
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditCategory(category)} title={t.edit} disabled={isLoading}>
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              title={t.delete}
+                              disabled={isLoading}
                             >
-                              {t.delete}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>{t.deleteCategory}</AlertDialogTitle>
+                              <AlertDialogDescription>{t.deleteCategoryDesc}</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteCategory(category.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {t.delete}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    )}
                   </div>
 
                   {category.color && (

@@ -1,77 +1,70 @@
 """
-Category endpoints
-GET /api/categories - List all categories with optional type filter
-GET /api/categories/:id - Get specific category
-POST /api/categories - Create new category
-PUT /api/categories/:id - Update category
-DELETE /api/categories/:id - Delete category
+Category endpoints.
 """
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.database import get_db
+
 from app.api.dependencies import get_current_user
+from app.core.database import get_db
+from app.models.category import Category, TransactionType
 from app.models.user import User
-from app.schemas.category import CategoryResponse, CategoryListResponse, CategoryCreate, CategoryUpdate
+from app.schemas.category import (
+    CategoryCreate,
+    CategoryListResponse,
+    CategoryResponse,
+    CategoryUpdate,
+)
 from app.services.category_service import CategoryService
-from app.models.category import TransactionType
 
 router = APIRouter(prefix="/categories", tags=["Categories"])
 
 
 @router.get("", response_model=CategoryListResponse)
 async def list_categories(
-    type: Optional[TransactionType] = Query(None, description="Filter by type (income/expense)"),
+    type: Optional[TransactionType] = Query(None, description="Filter by type"),
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
-    List all categories for the current user, optionally filtered by type
-
-    Requires authentication - returns only the user's personal categories
+    Return the user's personal categories plus shared default categories.
     """
-    from sqlalchemy import select, and_
-    from app.models.category import Category
+    conditions = [
+        or_(Category.user_id == current_user.id, Category.is_default.is_(True)),
+        Category.deleted_at.is_(None),
+    ]
 
-    # Build query for user's categories only
-    conditions = [Category.user_id == current_user.id, Category.deleted_at.is_(None)]
-    
     if type:
         conditions.append(Category.type == type)
-    
+
     result = await db.execute(
-        select(Category).where(and_(*conditions)).order_by(Category.type)
+        select(Category)
+        .where(and_(*conditions))
+        .order_by(Category.is_default.desc(), Category.type, Category.name)
     )
     categories = result.scalars().all()
 
     return CategoryListResponse(
-        categories=[CategoryResponse.model_validate(c) for c in categories],
-        total=len(categories)
+        categories=[CategoryResponse.model_validate(category) for category in categories],
+        total=len(categories),
     )
 
 
 @router.get("/{category_id}", response_model=CategoryResponse)
 async def get_category(
     category_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
-    """
-    Get a specific category by ID
-
-    NOTE: This endpoint is public (no authentication required)
-
-    TODO: Implement category retrieval
-    - Get category from database
-    - Return category data or 404 if not found
-    """
+    """Return a specific category by id."""
     category_service = CategoryService(db)
-
     category = await category_service.get_category_by_id(category_id)
 
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Category not found"
+            detail="Category not found",
         )
 
     return CategoryResponse.model_validate(category)
@@ -81,23 +74,17 @@ async def get_category(
 async def create_category(
     category_data: CategoryCreate,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
-    """
-    Create a new category for the current user
-
-    Requires authentication
-    """
+    """Create a new personal category for the current user."""
     category_service = CategoryService(db)
-
     category = await category_service.create_category(
         name=category_data.name,
         transaction_type=category_data.type,
         color=category_data.color,
         icon=category_data.icon,
-        user_id=current_user.id
+        user_id=current_user.id,
     )
-
     return CategoryResponse.model_validate(category)
 
 
@@ -106,33 +93,26 @@ async def update_category(
     category_id: int,
     category_data: CategoryUpdate,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
-    """
-    Update a category
-
-    Requires authentication. User can only update their own categories.
-    """
+    """Update a personal category owned by the current user."""
     category_service = CategoryService(db)
-
-    # Verify category exists and belongs to user
     category = await category_service.get_category_by_id(category_id)
+
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Category not found"
+            detail="Category not found",
         )
 
-    if category.user_id is not None and category.user_id != current_user.id:
+    if category.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to update this category"
+            detail="You don't have permission to update this category",
         )
 
     update_data = category_data.model_dump(exclude_unset=True)
-
     updated_category = await category_service.update_category(category_id, **update_data)
-
     return CategoryResponse.model_validate(updated_category)
 
 
@@ -140,29 +120,23 @@ async def update_category(
 async def delete_category(
     category_id: int,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
-    """
-    Delete a category (soft delete)
-
-    Requires authentication. User can only delete their own categories.
-    """
+    """Delete a personal category owned by the current user."""
     category_service = CategoryService(db)
-
-    # Verify category exists and belongs to user
     category = await category_service.get_category_by_id(category_id)
+
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Category not found"
+            detail="Category not found",
         )
 
-    if category.user_id is not None and category.user_id != current_user.id:
+    if category.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to delete this category"
+            detail="You don't have permission to delete this category",
         )
 
     await category_service.delete_category(category_id)
-
     return None

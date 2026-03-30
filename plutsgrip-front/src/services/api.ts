@@ -246,6 +246,13 @@ export interface SpendingPatterns {
   period_days: number
 }
 
+function normalizeCategory(category: Category): Category {
+  return {
+    ...category,
+    type: category.type.toLowerCase() === "income" ? "income" : "expense",
+  }
+}
+
 // Classe do serviço de API
 class ApiService {
   private static instance: ApiService
@@ -477,7 +484,7 @@ class ApiService {
     const params = new URLSearchParams({
       page: page.toString(),
       page_size: pageSize.toString(),
-      ...(type && { type }),
+      ...(type && { type: type.toUpperCase() }),
       ...(categoryId && { category: categoryId }),
       ...(startDate && { start_date: startDate }),
       ...(endDate && { end_date: endDate }),
@@ -533,15 +540,22 @@ class ApiService {
    * Lista todas as categorias
    */
   async listCategories(): Promise<CategoryListResponse> {
-    return this.request<CategoryListResponse>("/categories")
+    const response = await this.request<CategoryListResponse>("/categories")
+    return {
+      ...response,
+      categories: response.categories.map(normalizeCategory),
+    }
   }
 
   /**
    * Obtém categorias de um tipo específico
    */
   async getCategoriesByType(type: "income" | "expense"): Promise<Category[]> {
-    const params = new URLSearchParams({ type })
-    return this.request<Category[]>(`/categories?${params.toString()}`)
+    const params = new URLSearchParams({ type: type.toUpperCase() })
+    const response = await this.request<CategoryListResponse>(
+      `/categories?${params.toString()}`
+    )
+    return response.categories.map(normalizeCategory)
   }
 
   /**
@@ -553,10 +567,11 @@ class ApiService {
     color?: string
     icon?: string
   }): Promise<Category> {
-    return this.request<Category>("/categories", {
+    const category = await this.request<Category>("/categories", {
       method: "POST",
       body: JSON.stringify(data),
     })
+    return normalizeCategory(category)
   }
 
   /**
@@ -571,10 +586,11 @@ class ApiService {
       icon: string
     }>
   ): Promise<Category> {
-    return this.request<Category>(`/categories/${id}`, {
+    const category = await this.request<Category>(`/categories/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
     })
+    return normalizeCategory(category)
   }
 
   /**
@@ -629,7 +645,7 @@ class ApiService {
     }>
   > {
     const params = new URLSearchParams({
-      type,
+      type: type.toUpperCase(),
       ...(startDate && { start_date: startDate }),
       ...(endDate && { end_date: endDate }),
     })
