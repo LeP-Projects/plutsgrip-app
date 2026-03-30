@@ -2,10 +2,11 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card"
+import { Badge } from "@/components/Badge"
 import { Button } from "@/components/Button"
 import { Input } from "@/components/Input"
 import { Label } from "@/components/Label"
-import { PlusCircle, Trash2, Edit, Loader2, AlertCircle } from "lucide-react"
+import { PlusCircle, Trash2, Edit, Loader2, AlertCircle, ArrowDownRight, ArrowUpRight } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -37,10 +38,10 @@ import {
 const translations = {
   en: {
     manageCategories: "Manage Categories",
-    createAndOrganize: "Create and organize your expense categories",
+    createAndOrganize: "Create and organize your income and expense categories",
     addNewCategory: "Add New Category",
     createNewCategory: "Create New Category",
-    addNewCategoryDesc: "Add a new category to organize your expenses better.",
+    addNewCategoryDesc: "Add a new category to organize your cash flow better.",
     categoryName: "Category Name",
     categoryPlaceholder: "e.g., Travel, Subscriptions",
     cancel: "Cancel",
@@ -49,12 +50,13 @@ const translations = {
     updateCategory: "Update Category",
     editCategoryDesc: "Update the category name.",
     yourCategories: "Your Categories",
-    categoriesTotal: "categories • Total expenses tracked",
+    categoriesTotal: "registered categories",
     totalAmount: "Total Amount:",
     transactions: "Transactions:",
     edit: "Edit",
     delete: "Delete",
-    defaultCategory: "Default category",
+    expense: "Expense",
+    income: "Income",
     deleteCategory: "Delete Category",
     deleteCategoryDesc:
       "Are you sure you want to delete this category? This action cannot be undone and will affect all associated transactions.",
@@ -62,10 +64,10 @@ const translations = {
   },
   pt: {
     manageCategories: "Gerenciar Categorias",
-    createAndOrganize: "Crie e organize suas categorias de despesas",
+    createAndOrganize: "Crie e organize suas categorias de renda e despesa",
     addNewCategory: "Adicionar Nova Categoria",
     createNewCategory: "Criar Nova Categoria",
-    addNewCategoryDesc: "Adicione uma nova categoria para organizar melhor suas despesas.",
+    addNewCategoryDesc: "Adicione uma nova categoria para organizar melhor seu fluxo financeiro.",
     categoryName: "Nome da Categoria",
     categoryPlaceholder: "ex: Viagem, Assinaturas",
     cancel: "Cancelar",
@@ -74,12 +76,13 @@ const translations = {
     updateCategory: "Atualizar Categoria",
     editCategoryDesc: "Atualize o nome da categoria.",
     yourCategories: "Suas Categorias",
-    categoriesTotal: "categorias • Total de despesas rastreadas",
+    categoriesTotal: "categorias cadastradas",
     totalAmount: "Valor Total:",
     transactions: "Transações:",
     edit: "Editar",
     delete: "Excluir",
-    defaultCategory: "Categoria padrao",
+    expense: "Despesa",
+    income: "Renda",
     deleteCategory: "Excluir Categoria",
     deleteCategoryDesc:
       "Tem certeza de que deseja excluir esta categoria? Esta ação não pode ser desfeita e afetará todas as transações associadas.",
@@ -246,8 +249,18 @@ export function CategoryManager({ language }: CategoryManagerProps) {
                       <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="expense">Despesa</SelectItem>
-                      <SelectItem value="income">Renda</SelectItem>
+                      <SelectItem value="expense">
+                        <div className="flex items-center gap-2">
+                          <ArrowDownRight className="h-3.5 w-3.5 text-rose-600" />
+                          <span>{t.expense}</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="income">
+                        <div className="flex items-center gap-2">
+                          <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
+                          <span>{t.income}</span>
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -334,55 +347,57 @@ export function CategoryManager({ language }: CategoryManagerProps) {
               {categories.map((category) => (
                 <div
                   key={category.id}
-                  className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="rounded-lg border border-border p-4 transition-colors hover:bg-muted/50"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-medium text-foreground">{category.name}</h3>
-                      <p className="text-xs text-muted-foreground capitalize mt-1">
-                        {category.type === "income" ? "Renda" : "Despesa"}
-                      </p>
-                      {category.is_default && (
-                        <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                          {t.defaultCategory}
-                        </p>
-                      )}
-                    </div>
-                    {!category.is_default && (
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => handleEditCategory(category)} title={t.edit} disabled={isLoading}>
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive hover:text-destructive"
-                              title={t.delete}
-                              disabled={isLoading}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>{t.deleteCategory}</AlertDialogTitle>
-                              <AlertDialogDescription>{t.deleteCategoryDesc}</AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteCategory(category.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                {t.delete}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                      <div className="flex items-center gap-2">
+                        {category.type === "income" ? (
+                          <ArrowUpRight className="h-4 w-4 text-emerald-600" />
+                        ) : (
+                          <ArrowDownRight className="h-4 w-4 text-rose-600" />
+                        )}
+                        <h3 className="font-medium text-foreground">{category.name}</h3>
                       </div>
-                    )}
+                      <div className="mt-2">
+                        <Badge variant="outline" className={category.type === "income" ? "text-emerald-700" : "text-rose-700"}>
+                          {category.type === "income" ? t.income : t.expense}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => handleEditCategory(category)} title={t.edit} disabled={isLoading}>
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                            title={t.delete}
+                            disabled={isLoading}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>{t.deleteCategory}</AlertDialogTitle>
+                            <AlertDialogDescription>{t.deleteCategoryDesc}</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteCategory(category.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              {t.delete}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
 
                   {category.color && (

@@ -4,7 +4,7 @@ Category endpoints.
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_user
@@ -29,10 +29,11 @@ async def list_categories(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Return the user's personal categories plus shared default categories.
+    Return only the authenticated user's personal categories.
     """
     conditions = [
-        or_(Category.user_id == current_user.id, Category.is_default.is_(True)),
+        Category.user_id == current_user.id,
+        Category.is_default.is_(False),
         Category.deleted_at.is_(None),
     ]
 
@@ -42,7 +43,7 @@ async def list_categories(
     result = await db.execute(
         select(Category)
         .where(and_(*conditions))
-        .order_by(Category.is_default.desc(), Category.type, Category.name)
+        .order_by(Category.type, Category.name)
     )
     categories = result.scalars().all()
 

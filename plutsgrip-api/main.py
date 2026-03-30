@@ -14,7 +14,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.core.logging import logger, log_info, log_error
-from app.core.database import init_db, close_db, seed_default_categories, AsyncSessionLocal
+from app.core.database import init_db, close_db, remove_default_categories, AsyncSessionLocal
 from app.core.rate_limiter import limiter, update_whitelist_cache
 from app.api.v1.router import api_router
 from app.middlewares.error_handler import (
@@ -53,9 +53,9 @@ async def lifespan(app: FastAPI):
         log_info("Initializing database tables...")
         # await init_db()  # Uncomment if you want auto table creation in dev
 
-    # Seed default categories
-    log_info("Seeding default categories...")
-    await seed_default_categories()
+    # Remove legacy default categories from all users
+    log_info("Removing legacy default categories...")
+    await remove_default_categories()
     
     # Sync whitelist cache from database
     log_info("Syncing rate limit whitelist...")

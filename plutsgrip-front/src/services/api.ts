@@ -9,6 +9,7 @@
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api"
+const TRANSACTIONS_PAGE_SIZE_MAX = 100
 
 // Types para requisições e respostas
 export interface User {
@@ -41,7 +42,7 @@ export interface Transaction {
   description: string
   amount: number
   type: "income" | "expense"
-  category_id: number
+  category_id?: number
   category?: Category
   date: string
   notes?: string
@@ -54,7 +55,7 @@ export interface TransactionCreateRequest {
   description: string
   amount: number
   type: "income" | "expense"
-  category_id: number
+  category_id?: number
   date: string
   notes?: string
 }
@@ -251,6 +252,24 @@ function normalizeCategory(category: Category): Category {
     ...category,
     type: category.type.toLowerCase() === "income" ? "income" : "expense",
   }
+}
+
+function buildTransactionSearchParams(
+  page: number,
+  pageSize: number,
+  type?: "income" | "expense",
+  categoryId?: string,
+  startDate?: string,
+  endDate?: string
+) {
+  return new URLSearchParams({
+    page: page.toString(),
+    page_size: pageSize.toString(),
+    ...(type && { type: type.toUpperCase() }),
+    ...(categoryId && { category: categoryId }),
+    ...(startDate && { start_date: startDate }),
+    ...(endDate && { end_date: endDate }),
+  })
 }
 
 // Classe do serviço de API
@@ -481,18 +500,68 @@ class ApiService {
     startDate?: string,
     endDate?: string
   ): Promise<TransactionListResponse> {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      page_size: pageSize.toString(),
-      ...(type && { type: type.toUpperCase() }),
-      ...(categoryId && { category: categoryId }),
-      ...(startDate && { start_date: startDate }),
-      ...(endDate && { end_date: endDate }),
-    })
+    if (pageSize <= TRANSACTIONS_PAGE_SIZE_MAX) {
+      const params = buildTransactionSearchParams(
+        page,
+        pageSize,
+        type,
+        categoryId,
+        startDate,
+        endDate
+      )
 
-    return this.request<TransactionListResponse>(
-      `/transactions?${params.toString()}`
-    )
+      return this.request<TransactionListResponse>(
+        `/transactions?${params.toString()}`
+      )
+    }
+
+    const requestedOffset = (page - 1) * pageSize
+    const firstApiPage = Math.floor(requestedOffset / TRANSACTIONS_PAGE_SIZE_MAX) + 1
+    const offsetInFirstPage = requestedOffset % TRANSACTIONS_PAGE_SIZE_MAX
+    const collected: Transaction[] = []
+    let apiPage = firstApiPage
+    let total = 0
+
+    while (collected.length < pageSize) {
+      const params = buildTransactionSearchParams(
+        apiPage,
+        TRANSACTIONS_PAGE_SIZE_MAX,
+        type,
+        categoryId,
+        startDate,
+        endDate
+      )
+
+      const response = await this.request<TransactionListResponse>(
+        `/transactions?${params.toString()}`
+      )
+
+      total = response.total
+
+      const pageTransactions =
+        apiPage === firstApiPage
+          ? response.transactions.slice(offsetInFirstPage)
+          : response.transactions
+
+      collected.push(...pageTransactions)
+
+      if (response.transactions.length < TRANSACTIONS_PAGE_SIZE_MAX) {
+        break
+      }
+
+      if (requestedOffset + collected.length >= total) {
+        break
+      }
+
+      apiPage += 1
+    }
+
+    return {
+      transactions: collected.slice(0, pageSize),
+      total,
+      page,
+      page_size: pageSize,
+    }
   }
 
   /**

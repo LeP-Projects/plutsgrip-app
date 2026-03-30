@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { format, parseISO } from "date-fns"
-import { MoreHorizontal, Edit, Trash2, Search } from "lucide-react"
+import { MoreHorizontal, Edit, Trash2, Search, ArrowDownRight, ArrowUpRight } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card"
 import { Badge } from "@/components/Badge"
@@ -175,8 +175,14 @@ export function RecentTransactions({
       categories.map((category) => ({
         id: String(category.id),
         name: category.name,
+        type: category.type,
       })),
     [categories]
+  )
+
+  const selectedEditCategory = useMemo(
+    () => categoryOptions.find((category) => category.id === editForm?.categoryId),
+    [categoryOptions, editForm?.categoryId]
   )
 
   const filterCategories = useMemo(
@@ -196,7 +202,7 @@ export function RecentTransactions({
     setEditForm({
       description: transaction.description,
       amount: String(transaction.amount),
-      categoryId: String(transaction.category_id),
+      categoryId: transaction.category_id ? String(transaction.category_id) : "",
       type: normalizeTransactionType(transaction.type),
       date: transaction.date,
       notes: transaction.notes || "",
@@ -218,8 +224,8 @@ export function RecentTransactions({
     const payload: Partial<TransactionCreateRequest> = {
       description: editForm.description,
       amount: Number.parseFloat(editForm.amount),
-      category_id: Number.parseInt(editForm.categoryId, 10),
-      type: editForm.type,
+      category_id: editForm.categoryId ? Number.parseInt(editForm.categoryId, 10) : undefined,
+      type: selectedEditCategory?.type || editForm.type,
       date: editForm.date,
       notes: editForm.notes || undefined,
     }
@@ -345,6 +351,11 @@ export function RecentTransactions({
                     {formatTransactionDate(transaction.date)} •{" "}
                     {transaction.category?.name || t.uncategorized}
                   </p>
+                  <div className="mt-2">
+                    <Badge variant="outline" className={isExpense ? "text-rose-700" : "text-emerald-700"}>
+                      {isExpense ? t.saida : t.entrada}
+                    </Badge>
+                  </div>
                   {transaction.notes && (
                     <p className="mt-1 line-clamp-2 text-xs italic text-muted-foreground">
                       {t.notes}: {transaction.notes}
@@ -358,9 +369,6 @@ export function RecentTransactions({
                       {isExpense ? "-" : "+"}
                       {formatCurrency(transaction.amount)}
                     </p>
-                    <Badge variant={isExpense ? "destructive" : "default"} className="mt-1 text-xs">
-                      {isExpense ? t.saida : t.entrada}
-                    </Badge>
                   </div>
 
                   <DropdownMenu>
@@ -456,20 +464,44 @@ export function RecentTransactions({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>
-                    {t.category} {t.required}
-                  </Label>
+                  <Label>{t.category}</Label>
                   <Select
-                    value={editForm.categoryId}
-                    onValueChange={(value) => setEditForm((prev) => (prev ? { ...prev, categoryId: value } : prev))}
+                    value={editForm.categoryId || "none"}
+                    onValueChange={(value) =>
+                      setEditForm((prev) => {
+                        if (!prev) return prev
+                        const nextCategoryId = value === "none" ? "" : value
+                        const nextCategory = categoryOptions.find((category) => category.id === nextCategoryId)
+
+                        return {
+                          ...prev,
+                          categoryId: nextCategoryId,
+                          type: nextCategory?.type || prev.type,
+                        }
+                      })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={t.category} />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="none">{t.uncategorized}</SelectItem>
                       {categoryOptions.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
-                          {category.name}
+                          <div className="flex items-center gap-2">
+                            {category.type === "income" ? (
+                              <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
+                            ) : (
+                              <ArrowDownRight className="h-3.5 w-3.5 text-rose-600" />
+                            )}
+                            <span>{category.name}</span>
+                            <Badge
+                              variant="outline"
+                              className={category.type === "income" ? "text-emerald-700" : "text-rose-700"}
+                            >
+                              {category.type === "income" ? t.entrada : t.saida}
+                            </Badge>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -487,6 +519,7 @@ export function RecentTransactions({
                         prev ? { ...prev, type: value as "income" | "expense" } : prev
                       )
                     }
+                    disabled={Boolean(selectedEditCategory)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={t.type} />
@@ -496,6 +529,28 @@ export function RecentTransactions({
                       <SelectItem value="expense">{t.saida}</SelectItem>
                     </SelectContent>
                   </Select>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    {selectedEditCategory ? (
+                      <>
+                        {selectedEditCategory.type === "income" ? (
+                          <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
+                        ) : (
+                          <ArrowDownRight className="h-3.5 w-3.5 text-rose-600" />
+                        )}
+                        <span>
+                          {language === "pt"
+                            ? "Tipo definido pela categoria selecionada."
+                            : "Type is defined by the selected category."}
+                        </span>
+                      </>
+                    ) : (
+                      <span>
+                        {language === "pt"
+                          ? "Sem categoria, o tipo pode ser ajustado manualmente."
+                          : "Without a category, the type can be adjusted manually."}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -533,7 +588,6 @@ export function RecentTransactions({
                     updatingTransaction ||
                     !editForm.description.trim() ||
                     !editForm.amount.trim() ||
-                    !editForm.categoryId ||
                     !editForm.date
                   }
                 >

@@ -1,13 +1,14 @@
 import type React from "react"
 
 import { useState } from "react"
+import { Badge } from "@/components/Badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card"
 import { Button } from "@/components/Button"
 import { Input } from "@/components/Input"
 import { Label } from "@/components/Label"
 import { Textarea } from "@/components/Textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select"
-import { PlusCircle, AlertCircle } from "lucide-react"
+import { PlusCircle, AlertCircle, ArrowDownRight, ArrowUpRight } from "lucide-react"
 // import { Calendar } from "@/components/Calendar" // Unused now
 // import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover" // Unused now
 import { parseISO } from "date-fns"
@@ -28,6 +29,8 @@ const translations = {
     pickDate: "Pick a date",
     category: "Category",
     selectCategory: "Select a category",
+    noCategory: "No category",
+    categoryOptional: "Optional. If you choose one, the type follows the category.",
     type: "Type",
     selectType: "Select transaction type",
     income: "Income",
@@ -37,6 +40,8 @@ const translations = {
     notes: "Notes (Optional)",
     notesPlaceholder: "Additional details about this transaction...",
     addTransaction: "Add Transaction",
+    categoryTypeApplied: "Type defined by category",
+    chooseTypeWithoutCategory: "Without a category, choose the type manually.",
     required: "*",
   },
   pt: {
@@ -49,6 +54,8 @@ const translations = {
     pickDate: "Escolher data",
     category: "Categoria",
     selectCategory: "Selecionar categoria",
+    noCategory: "Sem categoria",
+    categoryOptional: "Opcional. Se escolher uma, o tipo segue a categoria.",
     type: "Tipo",
     selectType: "Selecionar tipo de transação",
     income: "Entrada",
@@ -58,6 +65,8 @@ const translations = {
     notes: "Observações (Opcional)",
     notesPlaceholder: "Detalhes adicionais sobre esta transação...",
     addTransaction: "Adicionar Transação",
+    categoryTypeApplied: "Tipo definido pela categoria",
+    chooseTypeWithoutCategory: "Sem categoria, escolha o tipo manualmente.",
     required: "*",
   },
 }
@@ -73,7 +82,7 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
   const { currency } = useCurrency()
 
   // Busca categorias da API
-  const { data: categoriesData, loading: categoriesLoading } = useApi(
+  const { data: categoriesData } = useApi(
     () => apiService.listCategories(),
     true // fetch immediately
   )
@@ -101,6 +110,8 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
 
   // Usa categorias da API ou lista vazia
   const categories = categoriesData?.categories || []
+  const selectedCategory = categories.find((category) => String(category.id) === formData.category)
+  const effectiveType = selectedCategory?.type || formData.type || defaultType || ""
 
   const t = translations[language as keyof typeof translations]
 
@@ -109,8 +120,8 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
       description: !formData.description.trim(),
       amount: !formData.amount.trim(),
       date: !date,
-      category: !formData.category,
-      type: !defaultType && !formData.type,
+      category: false,
+      type: !selectedCategory && !defaultType && !formData.type,
     }
 
     setErrors(newErrors)
@@ -128,8 +139,8 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
       const transactionData: TransactionCreateRequest = {
         description: formData.description,
         amount: parseFloat(formData.amount),
-        category_id: parseInt(formData.category, 10),
-        type: (formData.type || defaultType) as "income" | "expense",
+        category_id: formData.category ? parseInt(formData.category, 10) : undefined,
+        type: (effectiveType || defaultType) as "income" | "expense",
         date,
         notes: formData.notes || undefined,
       }
@@ -252,35 +263,82 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
 
             <div className="space-y-2">
               <Label>
-                {t.category} {t.required}
+                {t.category}
               </Label>
               <div className="relative">
                 <Select
-                  value={formData.category}
+                  value={formData.category || "none"}
                   onValueChange={(value) => {
-                    setFormData((prev) => ({ ...prev, category: value }))
+                    const nextCategoryId = value === "none" ? "" : value
+                    const nextCategory = categories.find((category) => String(category.id) === nextCategoryId)
+
+                    setFormData((prev) => ({
+                      ...prev,
+                      category: nextCategoryId,
+                      type: nextCategory?.type || prev.type,
+                    }))
                     if (errors.category) {
                       setErrors((prev) => ({ ...prev, category: false }))
                     }
+                    if (errors.type && nextCategory) {
+                      setErrors((prev) => ({ ...prev, type: false }))
+                    }
                   }}
-                  required
                 >
                   <SelectTrigger className={cn(errors.category && "border-red-500")}>
                     <SelectValue placeholder={t.selectCategory} />
                     {errors.category && <AlertCircle className="h-4 w-4 text-red-500" />}
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">{t.noCategory}</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={String(category.id)}>
-                        {category.name}
+                        <div className="flex items-center gap-2">
+                          {category.type === "income" ? (
+                            <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
+                          ) : (
+                            <ArrowDownRight className="h-3.5 w-3.5 text-rose-600" />
+                          )}
+                          <span>{category.name}</span>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "ml-1 border-current/20 text-[10px]",
+                              category.type === "income" ? "text-emerald-700" : "text-rose-700"
+                            )}
+                          >
+                            {category.type === "income" ? t.entrada : t.saida}
+                          </Badge>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              {errors.category && <p className="text-sm text-red-500">Este campo é obrigatório</p>}
+              <p className="text-sm text-muted-foreground">{t.categoryOptional}</p>
             </div>
           </div>
+
+          {defaultType && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {effectiveType === "income" ? (
+                <ArrowUpRight className="h-4 w-4 text-emerald-600" />
+              ) : effectiveType === "expense" ? (
+                <ArrowDownRight className="h-4 w-4 text-rose-600" />
+              ) : null}
+              <span>{selectedCategory ? t.categoryTypeApplied : t.chooseTypeWithoutCategory}</span>
+              {effectiveType && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    effectiveType === "income" ? "text-emerald-700" : "text-rose-700"
+                  )}
+                >
+                  {effectiveType === "income" ? t.entrada : t.saida}
+                </Badge>
+              )}
+            </div>
+          )}
 
           {!defaultType && (
             <div className="space-y-2">
@@ -289,14 +347,14 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
               </Label>
               <div className="relative">
                 <Select
-                  value={formData.type}
+                  value={effectiveType}
                   onValueChange={(value) => {
                     setFormData((prev) => ({ ...prev, type: value }))
                     if (errors.type) {
                       setErrors((prev) => ({ ...prev, type: false }))
                     }
                   }}
-                  required
+                  disabled={Boolean(selectedCategory)}
                 >
                   <SelectTrigger className={cn(errors.type && "border-red-500")}>
                     <SelectValue placeholder={t.selectType} />
@@ -307,6 +365,24 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
                     <SelectItem value="expense">{t.saida}</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                {effectiveType === "income" ? (
+                  <ArrowUpRight className="h-4 w-4 text-emerald-600" />
+                ) : effectiveType === "expense" ? (
+                  <ArrowDownRight className="h-4 w-4 text-rose-600" />
+                ) : null}
+                <span>{selectedCategory ? t.categoryTypeApplied : t.chooseTypeWithoutCategory}</span>
+                {effectiveType && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      effectiveType === "income" ? "text-emerald-700" : "text-rose-700"
+                    )}
+                  >
+                    {effectiveType === "income" ? t.entrada : t.saida}
+                  </Badge>
+                )}
               </div>
               {errors.type && <p className="text-sm text-red-500">Este campo é obrigatório</p>}
             </div>
@@ -323,7 +399,7 @@ export function ExpenseForm({ language, defaultType, onTransactionCreated }: Exp
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={creatingTransaction || categoriesLoading}>
+          <Button type="submit" className="w-full" disabled={creatingTransaction}>
             <PlusCircle className="mr-2 h-4 w-4" />
             {creatingTransaction ? "Criando..." : t.addTransaction}
           </Button>

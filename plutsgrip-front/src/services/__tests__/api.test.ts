@@ -270,7 +270,7 @@ describe('ApiService', () => {
     describe('listTransactions', () => {
       it('deve listar transações com paginação', async () => {
         const mockResponse = {
-          data: [
+          transactions: [
             {
               id: 'trans_001',
               description: 'Compra',
@@ -302,7 +302,7 @@ describe('ApiService', () => {
 
       it('deve filtrar por tipo de transação', async () => {
         const mockResponse = {
-          data: [],
+          transactions: [],
           total: 0,
           page: 1,
           page_size: 20
@@ -317,14 +317,14 @@ describe('ApiService', () => {
         await apiService.listTransactions(1, 20, 'expense')
 
         expect(global.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('type=expense'),
+          expect.stringContaining('type=EXPENSE'),
           expect.any(Object)
         )
       })
 
       it('deve filtrar por categoria', async () => {
         const mockResponse = {
-          data: [],
+          transactions: [],
           total: 0,
           page: 1,
           page_size: 20
@@ -342,6 +342,66 @@ describe('ApiService', () => {
           expect.stringContaining('category=cat_001'),
           expect.any(Object)
         )
+      })
+
+      it('deve paginar automaticamente quando a tela pede mais de 100 transações', async () => {
+        const firstPageResponse = {
+          transactions: Array.from({ length: 100 }, (_, index) => ({
+            id: `trans_${index + 1}`,
+            description: `Transação ${index + 1}`,
+            amount: index + 1,
+            type: 'expense',
+            category_id: 'cat_001',
+            date: '2024-11-03'
+          })),
+          total: 150,
+          page: 1,
+          page_size: 100
+        }
+
+        const secondPageResponse = {
+          transactions: Array.from({ length: 50 }, (_, index) => ({
+            id: `trans_${index + 101}`,
+            description: `Transação ${index + 101}`,
+            amount: index + 101,
+            type: 'expense',
+            category_id: 'cat_001',
+            date: '2024-11-03'
+          })),
+          total: 150,
+          page: 2,
+          page_size: 100
+        }
+
+        ;(global.fetch as any)
+          .mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            json: async () => firstPageResponse
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            json: async () => secondPageResponse
+          })
+
+        const result = await apiService.listTransactions(1, 150)
+
+        expect(global.fetch).toHaveBeenCalledTimes(2)
+        expect(global.fetch).toHaveBeenNthCalledWith(
+          1,
+          expect.stringContaining('page=1&page_size=100'),
+          expect.any(Object)
+        )
+        expect(global.fetch).toHaveBeenNthCalledWith(
+          2,
+          expect.stringContaining('page=2&page_size=100'),
+          expect.any(Object)
+        )
+        expect(result.total).toBe(150)
+        expect(result.page).toBe(1)
+        expect(result.page_size).toBe(150)
+        expect(result.transactions).toHaveLength(150)
       })
     })
 

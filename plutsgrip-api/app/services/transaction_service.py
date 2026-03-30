@@ -3,8 +3,11 @@ Transaction service for business logic
 """
 from datetime import date
 from typing import List, Optional
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.models.category import Category
 from app.models.transaction import Transaction
+from app.repositories.category_repository import CategoryRepository
 from app.repositories.transaction_repository import TransactionRepository
 from app.schemas.transaction import TransactionCreateRequest, TransactionUpdateRequest
 
@@ -15,6 +18,20 @@ class TransactionService:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.transaction_repo = TransactionRepository(db)
+        self.category_repo = CategoryRepository(db)
+
+    async def _resolve_category(self, user_id: int, category_id: Optional[int]) -> Optional[Category]:
+        if category_id is None:
+            return None
+
+        category = await self.category_repo.get_by_id(category_id)
+        if not category or category.user_id != user_id or category.deleted_at is not None or category.is_default:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Selected category is invalid for this user",
+            )
+
+        return category
 
     async def create_transaction(
         self,
@@ -33,9 +50,15 @@ class TransactionService:
 
         TODO: Implement full creation logic with validation
         """
+        category = await self._resolve_category(user_id, transaction_data.category_id)
+        payload = transaction_data.model_dump()
+
+        if category is not None:
+            payload["type"] = category.type
+
         transaction_dict = {
             "user_id": user_id,
-            **transaction_data.model_dump()
+            **payload
         }
 
         transaction = await self.transaction_repo.create(transaction_dict)
@@ -129,8 +152,18 @@ class TransactionService:
         if not transaction or transaction.user_id != user_id:
             return None
 
-        # Update only provided fields
         update_dict = transaction_data.model_dump(exclude_unset=True)
+
+        if "category_id" in update_dict and update_dict["category_id"] is None:
+            pass
+        else:
+            category = await self._resolve_category(
+                user_id,
+                update_dict.get("category_id", transaction.category_id),
+            )
+            if category is not None:
+                update_dict["type"] = category.type
+
         updated_transaction = await self.transaction_repo.update(transaction_id, update_dict)
         await self.db.commit()
 

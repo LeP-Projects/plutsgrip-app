@@ -2,7 +2,6 @@
 Authentication service for user registration and login
 """
 from typing import Optional, Tuple
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import (
     verify_password,
@@ -11,9 +10,7 @@ from app.core.security import (
     create_refresh_token,
     decode_token
 )
-from app.models.category import Category, TransactionType
 from app.models.user import User
-from app.repositories.category_repository import CategoryRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserRegisterRequest, UserLoginRequest
 
@@ -21,49 +18,9 @@ from app.schemas.user import UserRegisterRequest, UserLoginRequest
 class AuthService:
     """Service for authentication operations"""
 
-    FALLBACK_DEFAULT_CATEGORIES = (
-        {
-            "name": "Moradia",
-            "type": TransactionType.EXPENSE,
-            "color": "#FF6B6B",
-            "icon": "home",
-        },
-        {
-            "name": "Alimentacao",
-            "type": TransactionType.EXPENSE,
-            "color": "#FFD166",
-            "icon": "shopping-cart",
-        },
-        {
-            "name": "Transporte",
-            "type": TransactionType.EXPENSE,
-            "color": "#4ECDC4",
-            "icon": "car",
-        },
-        {
-            "name": "Lazer",
-            "type": TransactionType.EXPENSE,
-            "color": "#6C5CE7",
-            "icon": "sparkles",
-        },
-        {
-            "name": "Salario",
-            "type": TransactionType.INCOME,
-            "color": "#51CF66",
-            "icon": "wallet",
-        },
-        {
-            "name": "Renda Extra",
-            "type": TransactionType.INCOME,
-            "color": "#339AF0",
-            "icon": "trending-up",
-        },
-    )
-
     def __init__(self, db: AsyncSession):
         self.db = db
         self.user_repo = UserRepository(db)
-        self.category_repo = CategoryRepository(db)
 
     async def register_user(self, user_data: UserRegisterRequest) -> User:
         """
@@ -93,35 +50,9 @@ class AuthService:
         }
 
         user = await self.user_repo.create(user_dict)
-        await self._bootstrap_default_categories(user.id)
         await self.db.commit()
 
         return user
-
-    async def _bootstrap_default_categories(self, user_id: int) -> None:
-        """Create starter categories for a newly registered user."""
-        shared_defaults = await self.db.execute(
-            select(Category).where(
-                Category.is_default.is_(True),
-                Category.user_id.is_(None),
-                Category.deleted_at.is_(None),
-            )
-        )
-        shared_categories = shared_defaults.scalars().all()
-
-        categories_to_create = shared_categories or self.FALLBACK_DEFAULT_CATEGORIES
-
-        for category in categories_to_create:
-            await self.category_repo.create(
-                {
-                    "name": category.name if isinstance(category, Category) else category["name"],
-                    "type": category.type if isinstance(category, Category) else category["type"],
-                    "color": category.color if isinstance(category, Category) else category["color"],
-                    "icon": category.icon if isinstance(category, Category) else category["icon"],
-                    "is_default": True,
-                    "user_id": user_id,
-                }
-            )
 
     async def authenticate_user(self, login_data: UserLoginRequest) -> Optional[User]:
         """
